@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ChevronRight } from 'lucide-react'
 import { Container } from '../ui/Container'
 import { fadeUp, stagger } from '../../lib/motion'
 
@@ -9,7 +7,6 @@ export function PageHero({
   eyebrow,
   title,
   subtitle,
-  crumb,
 }: {
   eyebrow?: string
   title: string
