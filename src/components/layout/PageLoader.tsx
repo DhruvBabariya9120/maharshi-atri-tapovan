@@ -35,7 +35,7 @@ export function PageLoader() {
             <motion.img
               src={logo}
               alt={site.name}
-              className="relative h-24 w-24 rounded-full object-cover shadow-lift"
+              className="relative h-24 w-24 object-contain"
               initial={{ scale: 0.7, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}

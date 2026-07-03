@@ -9,5 +9,5 @@ export function Container({
   className?: string
   as?: 'div' | 'section' | 'header' | 'footer' | 'nav'
 }) {
-  return <Tag className={`mx-auto w-full max-w-7xl px-5 sm:px-8 ${className}`}>{children}</Tag>
+  return <Tag className={`mx-auto w-full max-w-7xl px-5 mt-2 sm:px-8 ${className}`}>{children}</Tag>
 }
