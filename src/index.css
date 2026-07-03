@@ -1,46 +1,146 @@
 @import 'tailwindcss';
 
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-}
+/* Fonts — self-hosted (no external CDN) */
+@import '@fontsource/poppins/400.css';
+@import '@fontsource/poppins/500.css';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+@import '@fontsource/poppins/800.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* ------------------------------------------------------------------ */
+/* MAT design tokens — light mode only                                 */
+/* ------------------------------------------------------------------ */
+:root {
+  color-scheme: light;
+  /* Brand */
+  --brand: #1d4ed8; /* Blue 700 — primary */
+  --brand-dark: #1e3a8a; /* Blue 900 — deep sections */
+  --brand-fg: #ffffff;
+  --accent: #f472b6; /* Pink 400 — CTA / accent */
+  --accent-strong: #ec4899; /* Pink 500 — hover */
+  --accent-fg: #ffffff;
+
+  /* Section tints */
+  --tint-blue: #dbeafe; /* Blue 100 — icon chips / accents */
+  --tint-pink: #fce7f3; /* Pink 100 — icon chips / accents */
+  --tint-blue-soft: #eff6ff; /* Blue 50 — full-section bands */
+  --tint-pink-soft: #fdf2f8; /* Pink 50 — full-section bands */
+
+  /* Surfaces */
+  --bg: #ffffff;
+  --bg-muted: #f8fafc; /* Slate 50 */
+  --card: #ffffff;
+  --border: #e5e7eb; /* Gray 200 */
+  --ring: #1d4ed8;
+
+  /* Text */
+  --heading: #0f172a; /* Slate 900 */
+  --body: #334155; /* Slate 700 — stronger, clearer body copy */
+  --muted: #64748b; /* Slate 500 — accessible muted (4.5:1 on white) */
+
+  /* Effects */
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -12px rgba(15, 23, 42, 0.15);
+  --shadow-lift: 0 12px 32px -12px rgba(29, 78, 216, 0.35);
+  --glass: rgba(255, 255, 255, 0.72);
 }
 
 @theme inline {
-  --font-sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: ui-monospace, Consolas, monospace;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Poppins', 'Inter', system-ui, sans-serif;
 
-  --color-content: var(--text);
-  --color-heading: var(--text-h);
-  --color-body: var(--bg);
-  --color-border: var(--border);
-  --color-code: var(--code-bg);
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-fg: var(--brand-fg);
   --color-accent: var(--accent);
-  --color-accent-bg: var(--accent-bg);
-  --color-accent-border: var(--accent-border);
-  --color-social: var(--social-bg);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-fg: var(--accent-fg);
 
-  --shadow-card: var(--shadow);
+  --color-tint-blue: var(--tint-blue);
+  --color-tint-pink: var(--tint-pink);
+  --color-tint-blue-soft: var(--tint-blue-soft);
+  --color-tint-pink-soft: var(--tint-pink-soft);
+
+  --color-body: var(--bg);
+  --color-surface: var(--bg-muted);
+  --color-card: var(--card);
+  --color-border: var(--border);
+
+  --color-heading: var(--heading);
+  --color-content: var(--body);
+  --color-muted: var(--muted);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-lift: var(--shadow-lift);
+}
+
+/* Base */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--body);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: var(--font-display);
+  color: var(--heading);
+}
+
+/* Accessible focus ring */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Utilities */
+.text-gradient {
+  background: linear-gradient(120deg, var(--brand), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes mat-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: mat-marquee 30s linear infinite;
 }
