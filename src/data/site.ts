@@ -43,11 +43,17 @@ export const hero = {
 }
 
 export const stats = [
-  { value: 2003, suffix: '', label: 'Serving since', isYear: true },
-  { value: 0, suffix: '', label: 'Primary + Std 4–10 · Boys residential', display: 'P–10' },
-  { value: 100, suffix: '%', label: 'SSC result — last 3 years' },
-  { value: 3, prefix: 'Top ', suffix: '', label: 'In Gujarat, SSC 2026' },
-  { value: 50, suffix: '+', label: 'Activities beyond books' },
+  { value: 2003, suffix: '', label: 'Serving since', isYear: true, icon: 'GraduationCap' },
+  {
+    value: 0,
+    suffix: '',
+    label: 'Primary + Std 4–10 · Boys residential',
+    display: 'P–10',
+    icon: 'BookOpen',
+  },
+  { value: 100, suffix: '%', label: 'SSC result — last 3 years', icon: 'Award' },
+  { value: 3, prefix: 'Top ', suffix: '', label: 'In Gujarat, SSC 2026', icon: 'Medal' },
+  { value: 50, suffix: '+', label: 'Activities beyond books', icon: 'Palette' },
 ]
 
 export const about = {

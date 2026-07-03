@@ -22,6 +22,7 @@
   --brand-fg: #ffffff;
   --accent: #f472b6; /* Pink 400 — CTA / accent */
   --accent-strong: #ec4899; /* Pink 500 — hover */
+  --accent-ink: #be185d; /* Pink 700 — accent text on light pink tint (5:1, AA) */
   --accent-fg: #ffffff;
 
   /* Section tints */
@@ -37,10 +38,10 @@
   --border: #e5e7eb; /* Gray 200 */
   --ring: #1d4ed8;
 
-  /* Text */
-  --heading: #0f172a; /* Slate 900 */
-  --body: #334155; /* Slate 700 — stronger, clearer body copy */
-  --muted: #64748b; /* Slate 500 — accessible muted (4.5:1 on white) */
+  /* Text — dark on light for hierarchy + AA contrast; brand blue is an accent, not body/heading */
+  --heading: #0f172a; /* Slate 900 — headings & strong text (16.1:1 on white) */
+  --body: #334155; /* Slate 700 — body copy (10.3:1 on white) */
+  --muted: #64748b; /* Slate 500 — muted / captions (4.6:1 on white, AA) */
 
   /* Effects */
   --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -12px rgba(15, 23, 42, 0.15);
@@ -57,6 +58,7 @@
   --color-brand-fg: var(--brand-fg);
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
+  --color-accent-ink: var(--accent-ink);
   --color-accent-fg: var(--accent-fg);
 
   --color-tint-blue: var(--tint-blue);
@@ -77,27 +79,30 @@
   --shadow-lift: var(--shadow-lift);
 }
 
-/* Base */
-html {
-  scroll-behavior: smooth;
-}
+/* Base — in @layer base so Tailwind utilities (e.g. text-white) always win over
+   these element defaults. Unlayered rules would otherwise beat utility classes. */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
 
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--body);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--body);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
 
-h1,
-h2,
-h3,
-h4,
-h5 {
-  font-family: var(--font-display);
-  color: var(--heading);
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-family: var(--font-display);
+    color: var(--heading);
+  }
 }
 
 /* Accessible focus ring */

@@ -25,7 +25,13 @@ export function Footer() {
   }
 
   return (
-    <footer className="bg-brand-dark text-white/80">
+    <footer
+      className="bg-brand-dark text-white/80"
+      style={{
+        backgroundImage:
+          'radial-gradient(circle at 12% 18%, rgba(59,130,246,0.45), transparent 42%), radial-gradient(circle at 88% 22%, rgba(244,114,182,0.35), transparent 45%), radial-gradient(circle at 60% 90%, rgba(147,197,253,0.25), transparent 45%)',
+      }}
+    >
       <Container className="grid gap-10 py-16 md:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-1">
           <div className="flex items-center gap-3">

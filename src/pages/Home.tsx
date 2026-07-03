@@ -18,6 +18,7 @@ import { SectionHeading } from '../components/ui/SectionHeading'
 import { IconCard } from '../components/ui/Card'
 import { StatCounter } from '../components/ui/StatCounter'
 import { ImagePlaceholder } from '../components/ui/ImagePlaceholder'
+import { Icon } from '../lib/icons'
 import { TestimonialCarousel } from '../components/ui/TestimonialCarousel'
 import { GalleryGrid } from '../components/ui/GalleryGrid'
 import { Reveal, RevealItem } from '../components/ui/Reveal'
@@ -93,12 +94,13 @@ const previews = [
 
 function HomeHero() {
   return (
-    <section className="relative overflow-hidden bg-brand-dark pt-28 pb-20 text-white sm:pt-40 sm:pb-28">
+    <section className="relative overflow-hidden bg-brand-dark pt-28 pb-20 text-white sm:pt-40 sm:pb-24">
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
             'radial-gradient(circle at 12% 18%, rgba(59,130,246,0.45), transparent 42%), radial-gradient(circle at 88% 22%, rgba(244,114,182,0.35), transparent 45%), radial-gradient(circle at 60% 90%, rgba(147,197,253,0.25), transparent 45%)',
+          backgroundAttachment: 'fixed',
         }}
         aria-hidden="true"
       />
@@ -111,7 +113,7 @@ function HomeHero() {
           </motion.div>
           <motion.h1
             variants={fadeUp}
-            className="mt-5 font-display text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl"
+            className="mt-5 font-display text-4xl font-extrabold text-tint-pink tracking-tight text- sm:text-5xl lg:text-6xl"
           >
             {hero.headline}
           </motion.h1>
@@ -145,14 +147,6 @@ function HomeHero() {
             <ImagePlaceholder label="Yoga & Prayer" icon="Flower2" ratio="portrait" />
             <ImagePlaceholder label="Sports" icon="Trophy" ratio="portrait" className="-mt-8" />
           </div>
-          <motion.div
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute -bottom-6 -left-6 hidden rounded-2xl bg-card p-4 text-heading shadow-lift sm:block"
-          >
-            <div className="text-2xl font-extrabold text-brand">100%</div>
-            <div className="text-xs text-content">SSC results · 3 years</div>
-          </motion.div>
         </motion.div>
       </Container>
     </section>
@@ -165,10 +159,12 @@ export function Home() {
       <HomeHero />
 
       {/* Stats strip */}
-      <Section tone="surface" className="!py-12">
-        <Reveal className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5" gap={0.08}>
+      <Section tone="surface" className="!py-16">
+        <Reveal className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5" gap={0.08}>
           {stats.map((s) => (
-            <StatCounter key={s.label} stat={s} />
+            <RevealItem key={s.label} className="h-full">
+              <StatCounter stat={s} />
+            </RevealItem>
           ))}
         </Reveal>
       </Section>
@@ -224,17 +220,23 @@ export function Home() {
             <RevealItem key={p.to}>
               <Link
                 to={p.to}
-                className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-shadow duration-300 hover:shadow-lift"
+                className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:border-brand/40 hover:shadow-lift"
               >
-                <ImagePlaceholder icon={p.icon} ratio="video" className="rounded-none border-0" />
-                <div className="flex flex-1 flex-col p-6">
-                  <Badge>{p.eyebrow}</Badge>
-                  <h3 className="mt-3 text-xl font-semibold text-heading">{p.title}</h3>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-content">{p.body}</p>
-                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-all group-hover:gap-2.5">
-                    Learn more <ArrowRight className="h-4 w-4" />
-                  </span>
+                {/* top accent that grows on hover */}
+                <span className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-linear-to-r from-brand to-accent transition-transform duration-300 group-hover:scale-x-100" />
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-tint-blue text-brand transition-colors duration-300 group-hover:bg-brand group-hover:text-brand-fg">
+                  <Icon name={p.icon} className="h-7 w-7" />
                 </div>
+                <span className="mt-6 text-xs font-semibold tracking-wide text-brand uppercase">
+                  {p.eyebrow}
+                </span>
+                <h3 className="mt-2 font-display text-xl font-bold text-heading transition-colors group-hover:text-brand">
+                  {p.title}
+                </h3>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-content">{p.body}</p>
+                <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-all group-hover:gap-2.5">
+                  Explore more <ArrowRight className="h-4 w-4" />
+                </span>
               </Link>
             </RevealItem>
           ))}
@@ -249,15 +251,20 @@ export function Home() {
         />
         <Reveal className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" gap={0.1}>
           {[
-            { big: '100%', small: 'SSC results, 3 years running' },
-            { big: 'Top 3', small: 'In Gujarat, SSC 2026' },
-            { big: '50+', small: 'Activities beyond books' },
-            { big: 'Govt.', small: 'Recognised for moral education' },
+            { big: '100%', small: 'SSC results, 3 years running', icon: 'Award' },
+            { big: 'Top 3', small: 'In Gujarat, SSC 2026', icon: 'Medal' },
+            { big: '50+', small: 'Activities beyond books', icon: 'Trophy' },
+            { big: 'Govt.', small: 'Recognised for moral education', icon: 'GraduationCap' },
           ].map((a) => (
             <RevealItem key={a.small}>
-              <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-card">
-                <div className="font-display text-4xl font-extrabold text-brand">{a.big}</div>
-                <div className="mt-2 text-sm text-content">{a.small}</div>
+              <div className="group flex h-full flex-col items-center rounded-3xl border border-border bg-card p-8 text-center shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:border-accent/40 hover:shadow-lift">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-tint-pink text-accent-strong transition-colors duration-300 group-hover:bg-accent group-hover:text-accent-fg">
+                  <Icon name={a.icon} className="h-6 w-6" />
+                </div>
+                <div className="font-display text-4xl font-extrabold tracking-tight text-heading">
+                  {a.big}
+                </div>
+                <div className="mt-2 text-sm text-muted">{a.small}</div>
               </div>
             </RevealItem>
           ))}

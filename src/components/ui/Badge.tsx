@@ -4,7 +4,7 @@ type Tone = 'brand' | 'accent' | 'neutral'
 
 const tones: Record<Tone, string> = {
   brand: 'bg-tint-blue text-brand',
-  accent: 'bg-tint-pink text-accent-strong',
+  accent: 'bg-tint-pink text-accent-ink',
   neutral: 'bg-surface text-content',
 }
 
