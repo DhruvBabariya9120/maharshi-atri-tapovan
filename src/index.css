@@ -153,3 +153,18 @@
 .animate-marquee {
   animation: mat-marquee 30s linear infinite;
 }
+
+/* Flowing gradient text — used for hero stats/highlights */
+@keyframes mat-gradient-pan {
+  to {
+    background-position: 200% center;
+  }
+}
+.text-gradient-animate {
+  background-image: linear-gradient(90deg, var(--brand), var(--accent), var(--brand));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: mat-gradient-pan 4s linear infinite;
+}

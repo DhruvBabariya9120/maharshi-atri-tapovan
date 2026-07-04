@@ -82,9 +82,16 @@ export function Footer() {
             Contact
           </h4>
           <ul className="mt-5 flex flex-col gap-4 text-sm text-white/70">
-            <li className="flex gap-3">
-              <MapPin className="text-accent mt-0.5 h-[18px] w-[18px] shrink-0" />
-              <span>{contact.address}</span>
+            <li>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contact.address)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex gap-3 rounded-sm underline-offset-2 transition-colors hover:text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                <MapPin className="text-accent mt-0.5 h-[18px] w-[18px] shrink-0" />
+                {contact.address}
+              </a>
             </li>
             <li className="flex gap-3">
               <Phone className="text-accent h-[18px] w-[18px] shrink-0" />
