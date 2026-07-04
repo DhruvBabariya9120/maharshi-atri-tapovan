@@ -40,16 +40,18 @@ export function DayTimeline({ entries }: { entries: DayEntry[] }) {
             key={i}
             className="relative pb-9 last:pb-0 lg:grid lg:grid-cols-2 lg:gap-x-12"
           >
-            {/* node */}
-            <motion.span
-              initial={{ scale: 0 }}
-              whileInView={{ scale: 1 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 18 }}
-              className="absolute top-0 left-5 z-10 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full bg-linear-to-br from-brand to-accent text-[11px] font-bold text-white shadow-card lg:left-1/2 lg:h-14 lg:w-14 lg:text-sm"
-            >
-              {e.marker}
-            </motion.span>
+            {/* node — wrapper handles positioning so the scale animation can't clobber the translate */}
+            <span className="absolute top-0 left-5 z-10 -translate-x-1/2 lg:left-1/2">
+              <motion.span
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 18 }}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-linear-to-br from-brand to-accent text-[11px] font-bold text-white shadow-card lg:h-14 lg:w-14 lg:text-sm"
+              >
+                {e.marker}
+              </motion.span>
+            </span>
 
             {/* card */}
             <motion.div
