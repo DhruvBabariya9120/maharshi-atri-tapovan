@@ -24,16 +24,7 @@ import { GalleryGrid } from '../components/ui/GalleryGrid'
 import { Reveal, RevealItem } from '../components/ui/Reveal'
 import { CTABanner } from '../components/sections/CTABanner'
 import { fadeUp, reveal, stagger } from '../lib/motion'
-import {
-  about,
-  academics,
-  campusLife,
-  hero,
-  hostel,
-  site,
-  stats,
-  testimonials,
-} from '../data/site'
+import { about, academics, campusLife, hero, hostel, site, stats, testimonials } from '../data/site'
 
 const whyMat = [
   {
@@ -94,12 +85,12 @@ const previews = [
 
 function HomeHero() {
   return (
-    <section className="relative overflow-hidden bg-brand-dark pt-28 pb-20 text-white sm:pt-40 sm:pb-24">
+    <section className="relative overflow-hidden bg-linear-to-br from-indigo-950 via-brand to-indigo-700 pt-28 pb-20 text-white sm:pt-40 sm:pb-24">
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
-            'radial-gradient(circle at 12% 18%, rgba(59,130,246,0.45), transparent 42%), radial-gradient(circle at 88% 22%, rgba(244,114,182,0.35), transparent 45%), radial-gradient(circle at 60% 90%, rgba(147,197,253,0.25), transparent 45%)',
+            'radial-gradient(circle at 12% 18%, rgba(59,130,246,0.35), transparent 42%), radial-gradient(circle at 88% 22%, rgba(244,114,182,0.18), transparent 45%), radial-gradient(circle at 60% 90%, rgba(147,197,253,0.18), transparent 45%)',
           backgroundAttachment: 'fixed',
         }}
         aria-hidden="true"
@@ -113,11 +104,14 @@ function HomeHero() {
           </motion.div>
           <motion.h1
             variants={fadeUp}
-            className="mt-5 font-display text-4xl font-extrabold text-tint-pink tracking-tight text- sm:text-5xl lg:text-6xl"
+            className="font-hero mt-5 text-4xl font-black tracking-tight text-tint-pink sm:text-5xl lg:text-6xl"
           >
             {hero.headline}
           </motion.h1>
-          <motion.p variants={fadeUp} className="mt-6 max-w-xl text-lg leading-relaxed text-white/80">
+          <motion.p
+            variants={fadeUp}
+            className="mt-6 max-w-xl text-lg leading-relaxed text-white/80"
+          >
             {hero.subheadline}
           </motion.p>
           <motion.div variants={fadeUp} className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -181,7 +175,7 @@ export function Home() {
               title="A modern-day tapovan since 2003"
               align="left"
             />
-            <motion.p variants={fadeUp} {...reveal} className="mt-6 leading-relaxed text-content">
+            <motion.p variants={fadeUp} {...reveal} className="text-content mt-6 leading-relaxed">
               {about.intro}
             </motion.p>
             <div className="mt-8">
@@ -202,7 +196,11 @@ export function Home() {
         />
         <Reveal className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {whyMat.map((f) => (
-            <IconCard key={f.title} icon={<f.icon className="h-6 w-6" strokeWidth={1.75} />} title={f.title}>
+            <IconCard
+              key={f.title}
+              icon={<f.icon className="h-6 w-6" strokeWidth={1.75} />}
+              title={f.title}
+            >
               {f.body}
             </IconCard>
           ))}
@@ -211,30 +209,27 @@ export function Home() {
 
       {/* Section previews */}
       <Section>
-        <SectionHeading
-          eyebrow="Explore the Tapovan"
-          title="Life at MAT, section by section"
-        />
+        <SectionHeading eyebrow="Explore the Tapovan" title="Life at MAT, section by section" />
         <Reveal className="mt-14 grid gap-6 md:grid-cols-3">
           {previews.map((p) => (
             <RevealItem key={p.to}>
               <Link
                 to={p.to}
-                className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:border-brand/40 hover:shadow-lift"
+                className="group border-border bg-card shadow-card hover:border-brand/40 hover:shadow-lift relative flex h-full flex-col overflow-hidden rounded-3xl border p-8 transition-all duration-300 hover:-translate-y-1.5"
               >
                 {/* top accent that grows on hover */}
-                <span className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-linear-to-r from-brand to-accent transition-transform duration-300 group-hover:scale-x-100" />
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-tint-blue text-brand transition-colors duration-300 group-hover:bg-brand group-hover:text-brand-fg">
+                <span className="from-brand to-accent absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-linear-to-r transition-transform duration-300 group-hover:scale-x-100" />
+                <div className="bg-tint-blue text-brand group-hover:bg-brand group-hover:text-brand-fg flex h-14 w-14 items-center justify-center rounded-2xl transition-colors duration-300">
                   <Icon name={p.icon} className="h-7 w-7" />
                 </div>
-                <span className="mt-6 text-xs font-semibold tracking-wide text-brand uppercase">
+                <span className="text-brand mt-6 text-xs font-semibold tracking-wide uppercase">
                   {p.eyebrow}
                 </span>
-                <h3 className="mt-2 font-display text-xl font-bold text-heading transition-colors group-hover:text-brand">
+                <h3 className="font-display text-heading group-hover:text-brand mt-2 text-xl font-bold transition-colors">
                   {p.title}
                 </h3>
-                <p className="mt-3 flex-1 text-sm leading-relaxed text-content">{p.body}</p>
-                <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-all group-hover:gap-2.5">
+                <p className="text-content mt-3 flex-1 text-sm leading-relaxed">{p.body}</p>
+                <span className="text-brand mt-6 inline-flex items-center gap-1.5 text-sm font-semibold transition-all group-hover:gap-2.5">
                   Explore more <ArrowRight className="h-4 w-4" />
                 </span>
               </Link>
@@ -257,14 +252,14 @@ export function Home() {
             { big: 'Govt.', small: 'Recognised for moral education', icon: 'GraduationCap' },
           ].map((a) => (
             <RevealItem key={a.small}>
-              <div className="group flex h-full flex-col items-center rounded-3xl border border-border bg-card p-8 text-center shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:border-accent/40 hover:shadow-lift">
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-tint-pink text-accent-strong transition-colors duration-300 group-hover:bg-accent group-hover:text-accent-fg">
+              <div className="group border-border bg-card shadow-card hover:border-accent/40 hover:shadow-lift flex h-full flex-col items-center rounded-3xl border p-8 text-center transition-all duration-300 hover:-translate-y-1.5">
+                <div className="bg-tint-pink text-accent-strong group-hover:bg-accent group-hover:text-accent-fg mb-5 flex h-12 w-12 items-center justify-center rounded-2xl transition-colors duration-300">
                   <Icon name={a.icon} className="h-6 w-6" />
                 </div>
-                <div className="font-display text-4xl font-extrabold tracking-tight text-heading">
+                <div className="font-display text-heading text-4xl font-extrabold tracking-tight">
                   {a.big}
                 </div>
-                <div className="mt-2 text-sm text-muted">{a.small}</div>
+                <div className="text-muted mt-2 text-sm">{a.small}</div>
               </div>
             </RevealItem>
           ))}

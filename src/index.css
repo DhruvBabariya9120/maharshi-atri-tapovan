@@ -10,6 +10,9 @@
 @import '@fontsource/inter/500.css';
 @import '@fontsource/inter/600.css';
 @import '@fontsource/inter/700.css';
+@import '@fontsource/fraunces/600.css';
+@import '@fontsource/fraunces/700.css';
+@import '@fontsource/fraunces/900.css';
 
 /* ------------------------------------------------------------------ */
 /* MAT design tokens — light mode only                                 */
@@ -52,6 +55,7 @@
 @theme inline {
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-display: 'Poppins', 'Inter', system-ui, sans-serif;
+  --font-hero: 'Fraunces', 'Poppins', Georgia, serif;
 
   --color-brand: var(--brand);
   --color-brand-dark: var(--brand-dark);

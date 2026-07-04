@@ -2,7 +2,6 @@ import { Section } from '../components/ui/Section'
 import { GalleryGrid } from '../components/ui/GalleryGrid'
 import { PageHero } from '../components/layout/PageHero'
 import { CTABanner } from '../components/sections/CTABanner'
-import { PendingNote } from '../components/ui/PendingNote'
 
 export function Gallery() {
   return (
@@ -16,12 +15,6 @@ export function Gallery() {
 
       <Section>
         <GalleryGrid />
-        <div className="mx-auto mt-12 max-w-xl text-center">
-          <PendingNote>
-            Real photographs (annual function, sports, festivals, yoga, art, campus & hostel) will
-            replace these placeholders once supplied by the school.
-          </PendingNote>
-        </div>
       </Section>
 
       <CTABanner

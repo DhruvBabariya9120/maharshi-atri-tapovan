@@ -5,7 +5,6 @@ import { SectionHeading } from '../components/ui/SectionHeading'
 import { Reveal, RevealItem } from '../components/ui/Reveal'
 import { PageHero } from '../components/layout/PageHero'
 import { ContactForm } from '../components/forms/ContactForm'
-import { PendingNote } from '../components/ui/PendingNote'
 import { fadeUp, reveal } from '../lib/motion'
 import { contact, site, TODO } from '../data/site'
 
@@ -63,11 +62,6 @@ export function Contact() {
             </RevealItem>
           ))}
         </Reveal>
-        <div className="mt-8">
-          <PendingNote>
-            Phone numbers, email, Google Maps link and social profiles to be confirmed by the school.
-          </PendingNote>
-        </div>
       </Section>
 
       {/* Map + Form */}

@@ -6,9 +6,8 @@ import { ImagePlaceholder } from '../components/ui/ImagePlaceholder'
 import { Reveal, RevealItem } from '../components/ui/Reveal'
 import { PageHero } from '../components/layout/PageHero'
 import { CTABanner } from '../components/sections/CTABanner'
-import { PendingNote } from '../components/ui/PendingNote'
 import { fadeUp, reveal } from '../lib/motion'
-import { about, TODO } from '../data/site'
+import { about } from '../data/site'
 
 export function About() {
   return (
@@ -103,7 +102,6 @@ export function About() {
               <div className="font-semibold text-brand">{about.chairman.name}</div>
               <div className="text-sm text-muted">{about.chairman.role}</div>
             </div>
-            {about.chairman.photo === TODO && <PendingNote>Chairman’s photograph to be added.</PendingNote>}
           </div>
         </motion.div>
       </Section>

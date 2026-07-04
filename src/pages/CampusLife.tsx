@@ -1,47 +1,125 @@
-import { motion } from 'framer-motion'
-import { Check } from 'lucide-react'
+import { motion, type Variants } from 'framer-motion'
+import { Sparkles } from 'lucide-react'
 import { Section } from '../components/ui/Section'
 import { Tabs, type Tab } from '../components/ui/Tabs'
 import { PageHero } from '../components/layout/PageHero'
 import { CTABanner } from '../components/sections/CTABanner'
-import { PendingNote } from '../components/ui/PendingNote'
 import { Icon } from '../lib/icons'
 import { fadeUp, reveal, stagger } from '../lib/motion'
 import { campusLife } from '../data/site'
+
+/** Premium spring pop-in. */
+const cardIn: Variants = {
+  hidden: { opacity: 0, y: 20, scale: 0.97 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: 'spring', stiffness: 280, damping: 24 },
+  },
+}
+
+/** What each group's items are called — keeps the count line content-specific. */
+const countLabel: Record<string, string> = {
+  spirituality: 'daily practices',
+  sports: 'sports & martial arts',
+  culture: 'arts & activities',
+  lifeskills: 'growth programmes',
+}
 
 function GroupContent({ group }: { group: (typeof campusLife.groups)[number] }) {
   const isSports = group.key === 'sports'
   return (
     <div>
-      <motion.ul
-        variants={stagger(0.04)}
+      {/* Focused group header — orients the visitor the moment the tab opens */}
+      <motion.div
+        variants={fadeUp}
         initial="hidden"
         animate="show"
-        className={
-          isSports
-            ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4'
-            : 'grid gap-4 sm:grid-cols-2'
-        }
+        className="mb-8 flex items-center gap-4"
       >
-        {group.items.map((item) => (
-          <motion.li
-            key={item}
-            variants={fadeUp}
-            className={`flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-card transition-all duration-200 hover:-translate-y-1 hover:border-brand ${
-              isSports ? 'text-sm' : ''
-            }`}
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-tint-blue text-brand">
-              <Check className="h-4 w-4" />
-            </span>
-            <span className="font-medium text-heading">{item}</span>
-          </motion.li>
-        ))}
-      </motion.ul>
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-brand to-accent text-white shadow-lift">
+          <Icon name={group.icon} className="h-7 w-7" strokeWidth={2} />
+        </span>
+        <div>
+          <h3 className="font-display text-2xl font-bold tracking-tight text-heading">
+            {group.title}
+          </h3>
+          <p className="mt-0.5 text-sm font-medium text-muted">
+            <span className="font-semibold text-brand tabular-nums">{group.items.length}</span>{' '}
+            {countLabel[group.key] ?? 'activities'}
+          </p>
+        </div>
+      </motion.div>
+
+      {isSports ? (
+        /* Many short names → an energetic chip cloud */
+        <motion.ul
+          variants={stagger(0.025)}
+          initial="hidden"
+          animate="show"
+          className="flex flex-wrap gap-2.5"
+        >
+          {group.items.map((item) => (
+            <motion.li
+              key={item}
+              variants={cardIn}
+              whileHover={{ y: -2 }}
+              className="group inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-content shadow-card transition-colors duration-200 hover:border-brand hover:bg-tint-blue-soft hover:text-brand"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-linear-to-br from-brand to-accent" />
+              {item}
+            </motion.li>
+          ))}
+        </motion.ul>
+      ) : (
+        /* Fewer, descriptive items → numbered editorial cards that highlight title + detail */
+        <motion.ul
+          variants={stagger(0.06)}
+          initial="hidden"
+          animate="show"
+          className="grid gap-4 sm:grid-cols-2"
+        >
+          {group.items.map((item, i) => {
+            const [title, ...rest] = item.split(' — ')
+            const desc = rest.join(' — ')
+            return (
+              <motion.li
+                key={item}
+                variants={cardIn}
+                whileHover={{ y: -4 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-card transition-colors duration-300 hover:border-brand/40"
+              >
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-0 left-0 h-full w-1 origin-top scale-y-0 bg-linear-to-b from-brand to-accent transition-transform duration-300 group-hover:scale-y-100"
+                />
+                <div className="flex items-start gap-4">
+                  <span className="font-display bg-linear-to-br from-brand to-accent bg-clip-text text-2xl font-extrabold tabular-nums text-transparent">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <div>
+                    <p className="font-semibold leading-snug text-heading">{title}</p>
+                    {desc && <p className="mt-1 text-sm leading-relaxed text-content">{desc}</p>}
+                  </div>
+                </div>
+              </motion.li>
+            )
+          })}
+        </motion.ul>
+      )}
+
       {group.note && (
-        <p className="mt-6 rounded-xl bg-tint-blue/50 px-4 py-3 text-sm font-medium text-brand">
+        <motion.p
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          className="mt-6 flex items-center gap-2.5 rounded-xl border border-brand/10 bg-linear-to-r from-tint-blue-soft to-tint-pink-soft px-4 py-3 text-sm font-medium text-brand"
+        >
+          <Sparkles className="h-4 w-4 shrink-0 text-accent" />
           {group.note}
-        </p>
+        </motion.p>
       )}
     </div>
   )
@@ -81,15 +159,19 @@ export function CampusLife() {
             { n: 'Annual', l: 'Historical drama & culture' },
             { n: 'Life', l: 'Skills & self-management' },
           ].map((s) => (
-            <motion.div key={s.l} variants={fadeUp}>
-              <div className="font-display text-3xl font-extrabold text-brand">{s.n}</div>
+            <motion.div
+              key={s.l}
+              variants={fadeUp}
+              whileHover={{ y: -4 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+            >
+              <div className="font-display bg-linear-to-r from-brand to-accent bg-clip-text text-3xl font-extrabold text-transparent">
+                {s.n}
+              </div>
               <div className="mt-1 text-sm text-content">{s.l}</div>
             </motion.div>
           ))}
         </motion.div>
-        <div className="mx-auto mt-8 max-w-xl text-center">
-          <PendingNote>Activity photos and event highlights to be added to the Gallery.</PendingNote>
-        </div>
       </Section>
 
       <CTABanner />

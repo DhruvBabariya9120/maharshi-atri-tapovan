@@ -6,7 +6,6 @@ import { Timeline } from '../components/ui/Timeline'
 import { ImagePlaceholder } from '../components/ui/ImagePlaceholder'
 import { PageHero } from '../components/layout/PageHero'
 import { CTABanner } from '../components/sections/CTABanner'
-import { PendingNote } from '../components/ui/PendingNote'
 import { Icon } from '../lib/icons'
 import { hostel } from '../data/site'
 
@@ -47,7 +46,6 @@ export function Hostel() {
             <div className="mt-6">
               <ImagePlaceholder label="Hostel & Dining" icon="BedDouble" ratio="video" />
             </div>
-            <PendingNote>{hostel.timetableNote}</PendingNote>
           </div>
           <Timeline
             entries={hostel.timetable.map((t) => ({

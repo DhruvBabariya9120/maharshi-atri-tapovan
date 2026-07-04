@@ -4,7 +4,6 @@ import { SectionHeading } from '../components/ui/SectionHeading'
 import { Reveal } from '../components/ui/Reveal'
 import { PageHero } from '../components/layout/PageHero'
 import { CTABanner } from '../components/sections/CTABanner'
-import { PendingNote } from '../components/ui/PendingNote'
 import { Icon } from '../lib/icons'
 import { fadeUp, reveal, stagger } from '../lib/motion'
 import { achievements } from '../data/site'
@@ -55,7 +54,6 @@ export function Achievements() {
               <div>
                 <h3 className="text-lg font-semibold text-heading">{a.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-content">{a.body}</p>
-                {a.pending && <PendingNote>{a.pending}</PendingNote>}
               </div>
             </motion.div>
           ))}
