@@ -26,7 +26,7 @@ export function Footer() {
 
   return (
     <footer
-      className="bg-brand-dark text-white bg-gradient-to-r from-blue-900 via-violet-800 to-pink-500"
+      className="text-white bg-blue-900"
     >
       <Container className="grid gap-10 py-16 md:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-1">

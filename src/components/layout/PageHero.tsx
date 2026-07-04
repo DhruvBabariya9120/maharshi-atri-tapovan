@@ -14,7 +14,7 @@ export function PageHero({
   crumb: string
 }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-r from-blue-900 via-violet-800 to-pink-500 pt-28 pb-16 text-white sm:pt-36 sm:pb-24">
+    <section className="relative overflow-hidden bg-blue-900 pt-28 pb-16 text-white sm:pt-36 sm:pb-24">
       {/* decorative shapes */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -46,7 +46,7 @@ export function PageHero({
           )}
           <motion.h1
             variants={fadeUp}
-            className="font-hero text-4xl font-black tracking-tight text-tint-pink sm:text-5xl lg:text-6xl"
+            className="font-hero text-tint-pink text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl"
           >
             {title}
           </motion.h1>

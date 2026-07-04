@@ -85,7 +85,7 @@ const previews = [
 
 function HomeHero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-r from-blue-900 via-violet-800 to-pink-500 pt-28 pb-20 text-white sm:pt-40 sm:pb-24">
+    <section className="relative overflow-hidden bg-blue-900 pt-28 pb-20 text-white sm:pt-40 sm:pb-24">
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -104,7 +104,7 @@ function HomeHero() {
           </motion.div>
           <motion.h1
             variants={fadeUp}
-            className="font-hero mt-5 text-4xl font-black tracking-tight text-tint-pink sm:text-5xl lg:text-6xl"
+            className="font-hero text-tint-pink mt-5 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl"
           >
             {hero.headline}
           </motion.h1>
