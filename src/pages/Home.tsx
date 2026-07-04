@@ -85,7 +85,7 @@ const previews = [
 
 function HomeHero() {
   return (
-    <section className="relative overflow-hidden bg-linear-to-br from-indigo-950 via-brand to-indigo-700 pt-28 pb-20 text-white sm:pt-40 sm:pb-24">
+    <section className="relative overflow-hidden bg-gradient-to-r from-blue-900 via-violet-800 to-pink-500 pt-28 pb-20 text-white sm:pt-40 sm:pb-24">
       <div
         className="pointer-events-none absolute inset-0"
         style={{

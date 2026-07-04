@@ -26,11 +26,7 @@ export function Footer() {
 
   return (
     <footer
-      className="bg-brand-dark text-white/80"
-      style={{
-        backgroundImage:
-          'radial-gradient(circle at 12% 18%, rgba(59,130,246,0.45), transparent 42%), radial-gradient(circle at 88% 22%, rgba(244,114,182,0.35), transparent 45%), radial-gradient(circle at 60% 90%, rgba(147,197,253,0.25), transparent 45%)',
-      }}
+      className="bg-brand-dark text-white bg-gradient-to-r from-blue-900 via-violet-800 to-pink-500"
     >
       <Container className="grid gap-10 py-16 md:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-1">
@@ -38,10 +34,10 @@ export function Footer() {
             <img src={logo} alt="" className="h-14 w-14 object-cover" />
             <div>
               <div className="font-display font-bold text-white">{site.name}</div>
-              <div className="text-xs text-white/60">{site.tagline}</div>
+              <div className="text-xs text-white">{site.tagline}</div>
             </div>
           </div>
-          <p className="mt-5 text-sm leading-relaxed text-white/70">{footer.about}</p>
+          <p className="mt-5 text-sm leading-relaxed text-white">{footer.about}</p>
           <div className="mt-5 flex gap-2">
             {socials.map((s) => (
               <a
@@ -67,7 +63,7 @@ export function Footer() {
               <li key={l.to}>
                 <Link
                   to={l.to}
-                  className="group inline-flex items-center text-sm text-white/70 transition-colors hover:text-white"
+                  className="group inline-flex items-center text-sm text-white transition-colors hover:text-white"
                 >
                   <span className="bg-accent mr-0 h-px w-0 transition-all duration-200 group-hover:mr-2 group-hover:w-4" />
                   {l.label}
@@ -81,7 +77,7 @@ export function Footer() {
           <h4 className="font-display text-sm font-semibold tracking-wide text-white uppercase">
             Contact
           </h4>
-          <ul className="mt-5 flex flex-col gap-4 text-sm text-white/70">
+          <ul className="mt-5 flex flex-col gap-4 text-sm text-white">
             <li>
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contact.address)}`}
@@ -110,7 +106,7 @@ export function Footer() {
           <h4 className="font-display text-sm font-semibold tracking-wide text-white uppercase">
             Newsletter
           </h4>
-          <p className="mt-5 text-sm text-white/70">
+          <p className="mt-5 text-sm text-white">
             Get campus updates, event invites and admission notices.
           </p>
           <form onSubmit={subscribe} className="mt-4 flex gap-2">
@@ -134,10 +130,10 @@ export function Footer() {
       </Container>
 
       <div className="border-t border-white/10">
-        <Container className="flex flex-col items-center justify-between gap-3 py-6 text-xs text-white/60 sm:flex-row">
+        <Container className="flex flex-col items-center justify-between gap-3 py-6 text-xs text-white sm:flex-row">
           <span>{site.copyright}</span>
           <span className="flex items-center gap-2">
-            <span className="rounded-full bg-white/10 px-2.5 py-1 font-medium text-white/80">
+            <span className="rounded-full bg-white/10 px-2.5 py-1 font-medium text-white">
               {site.board} · {site.medium}
             </span>
           </span>
