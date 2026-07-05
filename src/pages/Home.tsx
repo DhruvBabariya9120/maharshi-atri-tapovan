@@ -20,11 +20,10 @@ import { StatCounter } from '../components/ui/StatCounter'
 import { ImagePlaceholder } from '../components/ui/ImagePlaceholder'
 import { Icon } from '../lib/icons'
 import { TestimonialCarousel } from '../components/ui/TestimonialCarousel'
-import { GalleryGrid } from '../components/ui/GalleryGrid'
 import { Reveal, RevealItem } from '../components/ui/Reveal'
 import { CTABanner } from '../components/sections/CTABanner'
 import { fadeUp, reveal, stagger } from '../lib/motion'
-import { about, academics, campusLife, hero, hostel, site, stats, testimonials } from '../data/site'
+import { about, academics, campusLife, galleryCategories, hero, hostel, site, stats, testimonials } from '../data/site'
 
 const whyMat = [
   {
@@ -271,12 +270,40 @@ export function Home() {
         </div>
       </Section>
 
-      {/* Gallery preview */}
+      {/* Gallery preview — 3 photos + a clear "view all" tile */}
       <Section>
         <SectionHeading eyebrow="Gallery" title="Glimpses of the tapovan" />
-        <div className="mt-14">
-          <GalleryGrid />
-        </div>
+        <Reveal className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" gap={0.08}>
+          {galleryCategories.slice(0, 3).map((c) => (
+            <RevealItem key={c.key}>
+              <Link
+                to="/gallery"
+                aria-label={`View ${c.label} in the gallery`}
+                className="group block cursor-pointer overflow-hidden rounded-2xl"
+              >
+                <div className="transition-transform duration-500 group-hover:scale-105">
+                  <ImagePlaceholder label={c.label} icon={c.icon} ratio="square" />
+                </div>
+              </Link>
+            </RevealItem>
+          ))}
+          <RevealItem>
+            <Link
+              to="/gallery"
+              className="group from-brand to-accent shadow-lift relative flex aspect-square flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl bg-linear-to-br p-6 text-center text-white transition-transform duration-300 hover:-translate-y-1.5"
+            >
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/20 blur-2xl"
+              />
+              <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-white/20 backdrop-blur transition-transform duration-300 group-hover:scale-110">
+                <ArrowRight className="h-7 w-7 transition-transform duration-300 group-hover:translate-x-1" />
+              </span>
+              <span className="font-display relative text-lg font-bold">View full gallery</span>
+              <span className="relative text-sm text-white/85">Explore all photos</span>
+            </Link>
+          </RevealItem>
+        </Reveal>
       </Section>
 
       {/* Testimonials */}

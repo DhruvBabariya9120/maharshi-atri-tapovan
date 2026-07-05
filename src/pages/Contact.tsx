@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Clock, Mail, MapPin, Phone } from 'lucide-react'
+import { Clock, Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
 import { Section } from '../components/ui/Section'
 import { SectionHeading } from '../components/ui/SectionHeading'
 import { Reveal, RevealItem } from '../components/ui/Reveal'
@@ -13,25 +13,32 @@ const infoCards = [
     icon: MapPin,
     label: 'Address',
     value: contact.address,
-    pending: false,
+    href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contact.address)}`,
+    external: true,
+  },
+  {
+    icon: Phone,
+    label: 'Phone',
+    value: contact.schoolOffice,
+    href: `tel:${contact.schoolOffice.replace(/\s+/g, '')}`,
+  },
+  {
+    icon: MessageCircle,
+    label: 'WhatsApp',
+    value: contact.whatsapp,
+    href: contact.whatsappLink,
+    external: true,
+  },
+  {
+    icon: Mail,
+    label: 'Email',
+    value: contact.email,
+    href: `mailto:${contact.email}`,
   },
   {
     icon: Clock,
     label: 'Office Hours',
     value: contact.officeHours,
-    pending: false,
-  },
-  {
-    icon: Phone,
-    label: 'Phone',
-    value: contact.schoolOffice === TODO ? 'Phone number coming soon' : contact.schoolOffice,
-    pending: contact.schoolOffice === TODO,
-  },
-  {
-    icon: Mail,
-    label: 'Email',
-    value: contact.email === TODO ? 'Email coming soon' : contact.email,
-    pending: contact.email === TODO,
   },
 ]
 
@@ -47,20 +54,40 @@ export function Contact() {
 
       {/* Info cards */}
       <Section>
-        <Reveal className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4" gap={0.07}>
-          {infoCards.map((c) => (
-            <RevealItem key={c.label}>
-              <div className="flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-card">
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-tint-blue text-brand">
+        <Reveal className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" gap={0.07}>
+          {infoCards.map((c) => {
+            const inner = (
+              <>
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-tint-blue text-brand transition-colors duration-300 group-hover:bg-linear-to-br group-hover:from-brand group-hover:to-accent group-hover:text-white">
                   <c.icon className="h-5 w-5" />
                 </div>
                 <div className="text-xs font-semibold tracking-wide text-accent-strong uppercase">
                   {c.label}
                 </div>
-                <div className="mt-1.5 text-sm leading-relaxed text-content">{c.value}</div>
-              </div>
-            </RevealItem>
-          ))}
+                <div className="mt-1.5 text-sm leading-relaxed break-words text-content">
+                  {c.value}
+                </div>
+              </>
+            )
+            const cardClass =
+              'group flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-card transition-all duration-300'
+            return (
+              <RevealItem key={c.label}>
+                {c.href ? (
+                  <a
+                    href={c.href}
+                    target={c.external ? '_blank' : undefined}
+                    rel={c.external ? 'noreferrer' : undefined}
+                    className={`${cardClass} hover:-translate-y-1 hover:border-brand/40 hover:shadow-lift`}
+                  >
+                    {inner}
+                  </a>
+                ) : (
+                  <div className={cardClass}>{inner}</div>
+                )}
+              </RevealItem>
+            )
+          })}
         </Reveal>
       </Section>
 

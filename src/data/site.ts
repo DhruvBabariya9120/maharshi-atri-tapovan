@@ -401,9 +401,17 @@ export const contact = {
   address:
     'Maharshi Atri Tapovan, Gandhinagar–Mahudi Road, Piplaj (Near Nava Piplaj), Ta. & Dist. Gandhinagar, Gujarat — 382850',
   officeHours: '8:00 AM – 12:00 PM',
-  schoolOffice: TODO, // +91-XXXXXXXXXX
-  admissionsPhone: TODO, // +91-XXXXXXXXXX
-  email: TODO, // info@example.com
+  schoolOffice: '+91 82009 87958',
+  admissionsPhone: '+91 82009 87958',
+  email: 'atri_tapovan@yahoo.com',
+  whatsapp: '+91 81603 89136',
+  whatsappMessage:
+    'I would like to know more about admissions at Maharshi Atri Tapovan for my child. Please share the admission process and other details. Thank you.',
+  whatsappLink:
+    'https://wa.me/918160389136?text=' +
+    encodeURIComponent(
+      'I would like to know more about admissions at Maharshi Atri Tapovan for my child. Please share the admission process and other details. Thank you.',
+    ),
   mapEmbed: TODO, // Google Maps embed URL
   socials: {
     facebook: TODO,

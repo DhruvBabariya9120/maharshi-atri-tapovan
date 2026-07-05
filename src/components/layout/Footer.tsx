@@ -8,6 +8,7 @@ import { contact, footer, site, TODO } from '../../data/site'
 import logo from '../../assets/logo.svg'
 
 const socials = [
+  { brand: 'whatsapp' as const, label: 'WhatsApp', href: contact.whatsappLink },
   { brand: 'facebook' as const, label: 'Facebook', href: contact.socials.facebook },
   { brand: 'instagram' as const, label: 'Instagram', href: contact.socials.instagram },
   { brand: 'youtube' as const, label: 'YouTube', href: contact.socials.youtube },
@@ -83,21 +84,29 @@ export function Footer() {
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contact.address)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="flex gap-3 rounded-sm underline-offset-2 transition-colors hover:text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                className="flex gap-3 rounded-sm no-underline transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 <MapPin className="text-accent mt-0.5 h-[18px] w-[18px] shrink-0" />
                 {contact.address}
               </a>
             </li>
-            <li className="flex gap-3">
-              <Phone className="text-accent h-[18px] w-[18px] shrink-0" />
-              <span>
+            <li>
+              <a
+                href={`tel:${contact.schoolOffice.replace(/\s+/g, '')}`}
+                className="flex gap-3 rounded-sm no-underline transition-colors hover:text-white"
+              >
+                <Phone className="text-accent h-[18px] w-[18px] shrink-0" />
                 {contact.schoolOffice === TODO ? 'Phone — coming soon' : contact.schoolOffice}
-              </span>
+              </a>
             </li>
-            <li className="flex gap-3">
-              <Mail className="text-accent h-[18px] w-[18px] shrink-0" />
-              <span>{contact.email === TODO ? 'Email — coming soon' : contact.email}</span>
+            <li>
+              <a
+                href={`mailto:${contact.email}`}
+                className="flex gap-3 rounded-sm break-all no-underline transition-colors hover:text-white"
+              >
+                <Mail className="text-accent mt-0.5 h-[18px] w-[18px] shrink-0" />
+                {contact.email === TODO ? 'Email — coming soon' : contact.email}
+              </a>
             </li>
           </ul>
         </div>
