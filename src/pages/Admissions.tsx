@@ -23,7 +23,41 @@ export function Admissions() {
         subtitle={admissions.intro}
       />
 
-      {/* 1 — PROCESS: lead with how easy it is (horizontal animated stepper) */}
+      {/* 1 — ENQUIRY FORM: the conversion focal point, led first */}
+      <Section tone="surface">
+        <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+          <motion.div variants={fadeUp} {...reveal}>
+            <SectionHeading
+              eyebrow="Admission Enquiry"
+              title="Request a call back"
+              subtitle="Fill this form and our office will call you within 1–2 working days."
+              align="left"
+            />
+            <ul className="mt-8 flex flex-col gap-4">
+              {reassurance.map((r) => (
+                <li key={r} className="flex gap-3">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-tint-blue text-brand">
+                    <PhoneCall className="h-4 w-4" />
+                  </span>
+                  <span className="text-sm leading-relaxed text-content">{r}</span>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          <motion.div
+            variants={fadeUp}
+            {...reveal}
+            className="relative rounded-3xl bg-linear-to-br from-brand to-accent p-[2px] shadow-lift"
+          >
+            <div className="rounded-[calc(1.5rem-2px)] bg-card p-6 sm:p-8">
+              <AdmissionForm />
+            </div>
+          </motion.div>
+        </div>
+      </Section>
+
+      {/* 2 — PROCESS: how easy it is (horizontal animated stepper) */}
       <Section>
         <SectionHeading eyebrow="Admission Process" title="Four simple steps" />
         <div className="relative mx-auto mt-16 max-w-5xl">
@@ -62,7 +96,7 @@ export function Admissions() {
         </div>
       </Section>
 
-      {/* 2 — ELIGIBILITY + DOCUMENTS */}
+      {/* 3 — ELIGIBILITY + DOCUMENTS */}
       <Section tone="blue">
         <div className="grid gap-12 lg:grid-cols-2">
           <div>
@@ -110,39 +144,6 @@ export function Admissions() {
         </div>
       </Section>
 
-      {/* 3 — ENQUIRY FORM: the conversion focal point */}
-      <Section tone="surface">
-        <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-          <motion.div variants={fadeUp} {...reveal}>
-            <SectionHeading
-              eyebrow="Admission Enquiry"
-              title="Request a call back"
-              subtitle="Fill this form and our office will call you within 1–2 working days."
-              align="left"
-            />
-            <ul className="mt-8 flex flex-col gap-4">
-              {reassurance.map((r) => (
-                <li key={r} className="flex gap-3">
-                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-tint-blue text-brand">
-                    <PhoneCall className="h-4 w-4" />
-                  </span>
-                  <span className="text-sm leading-relaxed text-content">{r}</span>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          <motion.div
-            variants={fadeUp}
-            {...reveal}
-            className="relative rounded-3xl bg-linear-to-br from-brand to-accent p-[2px] shadow-lift"
-          >
-            <div className="rounded-[calc(1.5rem-2px)] bg-card p-6 sm:p-8">
-              <AdmissionForm />
-            </div>
-          </motion.div>
-        </div>
-      </Section>
     </>
   )
 }
