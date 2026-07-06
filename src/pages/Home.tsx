@@ -80,7 +80,7 @@ const previews = [
     to: '/hostel',
     icon: 'BedDouble',
   },
-]
+] 
 
 function HomeHero() {
   return (
