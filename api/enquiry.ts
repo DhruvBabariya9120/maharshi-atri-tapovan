@@ -7,7 +7,7 @@ import { Resend } from 'resend'
 // shares lib/sendEnquiry.ts; this keeps production isolated and robust.
 
 const TO = process.env.ENQUIRY_TO || 'atri_tapovan@yahoo.com'
-const FROM = process.env.ENQUIRY_FROM || 'update.atritapovan.com'
+const FROM = process.env.ENQUIRY_FROM || 'MAT Admissions <admissions@atritapovan.com>'
 
 function escapeHtml(s: string) {
   return s
