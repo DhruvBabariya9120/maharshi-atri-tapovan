@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring } from 'framer-motion'
 import { Menu, Phone, X } from 'lucide-react'
-import { nav, site } from '../../data/site'
+import { contact, nav, site } from '../../data/site'
 import logo from '../../assets/logo.svg'
 
 export function Navbar() {
@@ -168,7 +168,7 @@ export function Navbar() {
                   className="mt-4"
                 >
                   <a
-                    href="tel:"
+                    href={`tel:${contact.schoolOffice.replace(/\s+/g, '')}`}
                     className="flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-base font-semibold text-white transition-colors hover:bg-brand-dark"
                   >
                     <Phone className="h-4 w-4" /> Call the School Office

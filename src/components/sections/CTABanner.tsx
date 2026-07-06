@@ -3,6 +3,7 @@ import { ArrowRight, PhoneCall } from 'lucide-react'
 import { Container } from '../ui/Container'
 import { Button } from '../ui/Button'
 import { reveal, fadeUp } from '../../lib/motion'
+import { contact } from '../../data/site'
 
 export function CTABanner({
   title = 'Give your son a tapovan to grow in.',
@@ -33,7 +34,7 @@ export function CTABanner({
               <Button to="/admissions" variant="accent" size="lg">
                 Admission Enquiry <ArrowRight className="h-4 w-4" />
               </Button>
-              <Button to="/contact" variant="outline" size="lg" className="!border-white/40 !bg-white/10 !text-white hover:!border-white">
+              <Button href={`tel:${contact.schoolOffice.replace(/\s+/g, '')}`} variant="outline" size="lg" className="!border-white/40 !bg-white/10 !text-white hover:!border-white">
                 <PhoneCall className="h-4 w-4" /> Contact the School
               </Button>
             </div>

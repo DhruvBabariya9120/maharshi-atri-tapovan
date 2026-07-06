@@ -27,11 +27,19 @@ export function AdmissionForm() {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
-  async function onSubmit(_data: FormValues) {
-    // TODO: connect to email / WhatsApp / Google Sheet or school ERP.
-    await new Promise((r) => setTimeout(r, 900))
-    toast.success(admissions.successMessage)
-    reset()
+  async function onSubmit(data: FormValues) {
+    try {
+      const res = await fetch('/api/enquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) throw new Error('Request failed')
+      toast.success(admissions.successMessage)
+      reset()
+    } catch {
+      toast.error('Sorry, we couldn’t send your enquiry. Please call the school office instead.')
+    }
   }
 
   return (

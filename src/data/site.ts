@@ -18,7 +18,7 @@ export const site = {
     'Gandhinagar–Mahudi Road, Piplaj (Near Nava Piplaj), Ta. & Dist. Gandhinagar, Gujarat — 382850',
   seoTitle: 'Maharshi Atri Tapovan (MAT) | Residential School for Boys, Gandhinagar',
   metaDescription:
-    'Maharshi Atri Tapovan, Piplaj (Gandhinagar) — a Gujarati-medium GSEB residential school for boys (Primary Section and Std 4–10) blending modern education with yoga, sports, culture and moral values. 100% SSC results for the last 3 years.',
+    'Maharshi Atri Tapovan, Piplaj (Gandhinagar) — a Gujarati-medium GSEB residential school for boys (Std 4–10) blending modern education with yoga, sports, culture and moral values. 100% SSC results for the last 3 years.',
   copyright: '© 2026 Maharshi Atri Tapovan, Piplaj. All rights reserved.',
 }
 
@@ -37,7 +37,7 @@ export const nav = [
 export const hero = {
   headline: 'Where a Boy Becomes a Balanced Man',
   subheadline:
-    'Since 2003, Maharshi Atri Tapovan has been nurturing boys — from the Primary Section up to Std 10 — in a gurukul-inspired residential campus: strong in studies, rooted in sanskar, and skilled for life.',
+    'Since 2003, Maharshi Atri Tapovan has been nurturing boys — from Std 4 to Std 10 — in a gurukul-inspired residential campus: strong in studies, rooted in sanskar, and skilled for life.',
   primaryCta: { label: 'Admission Enquiry', to: '/admissions' },
   secondaryCta: { label: 'Explore Campus Life', to: '/campus-life' },
 }
@@ -47,7 +47,7 @@ export const stats = [
   {
     value: 0,
     suffix: '',
-    label: 'Primary + Std 4–10 · Boys residential',
+    label: 'Std 4–10 · Boys residential',
     display: 'P–10',
     icon: 'BookOpen',
   },
@@ -86,11 +86,11 @@ export const about = {
 
 export const academics = {
   intro:
-    'MAT follows the Gujarat Board (GSEB) curriculum in Gujarati medium — now from the Primary Section through Std 10. Small class strength, supervised evening study in the hostel, and weekly testing ensure that every boy — not just the topper — performs to his best.',
+    'MAT follows the Gujarat Board (GSEB) curriculum in Gujarati medium — from Std 4 through Std 10. Small class strength, supervised evening study in the hostel, and weekly testing ensure that every boy — not just the topper — performs to his best.',
   facts: [
     { label: 'Board', value: 'GSEB (Gujarat Board)' },
     { label: 'Medium', value: 'Gujarati' },
-    { label: 'Classes', value: 'Primary Section and Std 4 to Std 10' },
+    { label: 'Classes', value: 'Std 4 to Std 10' },
     { label: 'Study model', value: 'Fully residential with supervised study hours' },
     { label: 'Assessment', value: 'Weekly tests across subjects, plus regular term examinations' },
   ],
@@ -347,10 +347,10 @@ export const testimonials = {
 
 export const admissions = {
   intro:
-    'Admissions are open for boys seeking a residential education from the Primary Section up to Std 10 (Gujarati medium, GSEB). Seats are limited, and we encourage parents to visit the campus with their child before finalising.',
+    'Admissions are open for boys seeking a residential education from Std 4 to Std 10 (Gujarati medium, GSEB). Seats are limited, and we encourage parents to visit the campus with their child before finalising.',
   eligibility: [
     'Boys only — fully residential (hostel is compulsory for all students).',
-    'Admission offered in the Primary Section and Std 4 to Std 10.',
+    'Admission offered from Std 4 to Std 10.',
     'Gujarati-medium; prior schooling in Gujarati medium is preferred.',
     'Age appropriate to the standard applied for, as per Gujarat Board norms.',
   ],
@@ -385,7 +385,6 @@ export const admissions = {
     'Caste certificate (if applicable)',
   ],
   standards: [
-    'Primary Section',
     'Std 4',
     'Std 5',
     'Std 6',
@@ -414,15 +413,16 @@ export const contact = {
     ),
   mapEmbed: TODO, // Google Maps embed URL
   socials: {
-    facebook: TODO,
-    instagram: TODO,
-    youtube: TODO,
+    facebook:
+      'https://www.facebook.com/p/Maharshi-ATRI-Tapovan-MAT-100054428802157/',
+    instagram: 'https://www.instagram.com/maharshi_atri_tapovan',
+    youtube: 'https://youtube.com/@maharshiatritapovan.gandhinaga',
   },
 }
 
 export const footer = {
   about:
-    'Maharshi Atri Tapovan, Piplaj — a residential gurukul-style school for boys (Primary Section and Std 4–10) blending Gujarat Board education with sports, culture, yoga and moral values since 2003.',
+    'Maharshi Atri Tapovan, Piplaj — a residential gurukul-style school for boys (Std 4–10) blending Gujarat Board education with sports, culture, yoga and moral values since 2003.',
   quickLinks: [
     { label: 'About', to: '/about' },
     { label: 'Academics', to: '/academics' },

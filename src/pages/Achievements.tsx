@@ -82,7 +82,7 @@ export function Achievements() {
 
       <CTABanner
         title="Be part of the next result to celebrate."
-        subtitle="Admissions are open for the Primary Section up to Std 10."
+        subtitle="Admissions are open for Std 4 to Std 10."
       />
     </>
   )
