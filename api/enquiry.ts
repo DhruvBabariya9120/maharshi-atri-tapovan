@@ -7,7 +7,7 @@ import { Resend } from 'resend'
 // shares lib/sendEnquiry.ts; this keeps production isolated and robust.
 
 const TO = process.env.ENQUIRY_TO || 'atri_tapovan@yahoo.com'
-const FROM = process.env.ENQUIRY_FROM || 'MAT Admissions <onboarding@resend.dev>'
+const FROM = process.env.ENQUIRY_FROM || 'MAT Admissions <update.atritapovan.com>'
 
 function escapeHtml(s: string) {
   return s
@@ -65,7 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ${rows
             .map(
               ([k, v]) =>
-                `<tr><td style="padding:8px 12px;border:1px solid #e5e7eb;background:#f8fafc;font-weight:600;color:#0f172a;width:38%">${k}</td><td style="padding:8px 12px;border:1px solid #e5e7eb;color:#334155">${escapeHtml(v)}</td></tr>`,
+                `<tr><td style="padding:8px 12px;border:1px solid #e5e7eb;background:#f8fafc;font-weight:600;color:#0f172a;width:38%">${k}</td><td style="padding:8px 12px;border:1px solid #e5e7eb;color:#334155">${escapeHtml(v)}</td></tr>`
             )
             .join('')}
         </table>
