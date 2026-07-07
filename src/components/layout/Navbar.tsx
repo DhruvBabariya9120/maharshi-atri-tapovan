@@ -61,28 +61,37 @@ export function Navbar() {
         {/* Desktop links — centered zone */}
         <ul className="hidden flex-1 items-center justify-center gap-0.5 xl:flex">
           {nav.map((item) => (
-            <li key={item.to}>
-              <NavLink
-                to={item.to}
-                end={item.to === '/'}
-                className={({ isActive }) =>
-                  `relative rounded-lg px-2.5 py-2 text-sm transition-colors duration-200 ${
-                    isActive ? 'font-semibold text-brand' : 'font-medium text-brand hover:text-accent-ink'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    {item.label}
-                    {isActive && (
-                      <motion.span
-                        layoutId="nav-underline"
-                        className="absolute inset-x-2.5 -bottom-0.5 h-0.5 rounded-full bg-brand"
-                      />
-                    )}
-                  </>
-                )}
-              </NavLink>
+            <li key={item.label}>
+              {item.href ? (
+                <a
+                  href={item.href}
+                  className="relative rounded-lg px-2.5 py-2 text-sm font-medium text-brand transition-colors duration-200 hover:text-accent-ink"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <NavLink
+                  to={item.to!}
+                  end={item.to === '/'}
+                  className={({ isActive }) =>
+                    `relative rounded-lg px-2.5 py-2 text-sm transition-colors duration-200 ${
+                      isActive ? 'font-semibold text-brand' : 'font-medium text-brand hover:text-accent-ink'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {item.label}
+                      {isActive && (
+                        <motion.span
+                          layoutId="nav-underline"
+                          className="absolute inset-x-2.5 -bottom-0.5 h-0.5 rounded-full bg-brand"
+                        />
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              )}
             </li>
           ))}
         </ul>
@@ -145,22 +154,31 @@ export function Navbar() {
               >
                 {nav.map((item) => (
                   <motion.li
-                    key={item.to}
+                    key={item.label}
                     variants={{ hidden: { opacity: 0, x: 24 }, show: { opacity: 1, x: 0 } }}
                   >
-                    <NavLink
-                      to={item.to}
-                      end={item.to === '/'}
-                      className={({ isActive }) =>
-                        `block rounded-xl px-4 py-3.5 text-lg font-medium transition-colors ${
-                          isActive
-                            ? 'bg-brand/10 font-semibold text-brand'
-                            : 'text-brand hover:bg-brand/10 hover:text-brand-dark'
-                        }`
-                      }
-                    >
-                      {item.label}
-                    </NavLink>
+                    {item.href ? (
+                      <a
+                        href={item.href}
+                        className="block rounded-xl px-4 py-3.5 text-lg font-medium text-brand transition-colors hover:bg-brand/10 hover:text-brand-dark"
+                      >
+                        {item.label}
+                      </a>
+                    ) : (
+                      <NavLink
+                        to={item.to!}
+                        end={item.to === '/'}
+                        className={({ isActive }) =>
+                          `block rounded-xl px-4 py-3.5 text-lg font-medium transition-colors ${
+                            isActive
+                              ? 'bg-brand/10 font-semibold text-brand'
+                              : 'text-brand hover:bg-brand/10 hover:text-brand-dark'
+                          }`
+                        }
+                      >
+                        {item.label}
+                      </NavLink>
+                    )}
                   </motion.li>
                 ))}
                 <motion.li

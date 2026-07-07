@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { CheckCircle2, Eye, Quote, Target } from 'lucide-react'
+import { CheckCircle2, Eye, MapPin, Quote, Target } from 'lucide-react'
 import { Section } from '../components/ui/Section'
 import { SectionHeading } from '../components/ui/SectionHeading'
 import { ImagePlaceholder } from '../components/ui/ImagePlaceholder'
@@ -7,7 +7,7 @@ import { Reveal, RevealItem } from '../components/ui/Reveal'
 import { PageHero } from '../components/layout/PageHero'
 import { CTABanner } from '../components/sections/CTABanner'
 import { fadeUp, reveal } from '../lib/motion'
-import { about } from '../data/site'
+import { about, contact, site, TODO } from '../data/site'
 
 export function About() {
   return (
@@ -32,7 +32,39 @@ export function About() {
             </motion.div>
           </div>
           <motion.div variants={fadeUp} {...reveal}>
-            <ImagePlaceholder label="Campus & Prayer Hall" icon="Sparkles" ratio="portrait" />
+            <div className="group relative aspect-[5/4] overflow-hidden rounded-2xl border border-border shadow-card">
+              {contact.mapEmbed === TODO ? (
+                <div className="flex h-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-tint-blue to-tint-pink text-center">
+                  <MapPin className="h-10 w-10 text-brand" />
+                  <div className="px-6">
+                    <div className="font-semibold text-heading">{site.name}</div>
+                    <div className="mt-1 text-sm text-content">{contact.address}</div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <iframe
+                    title="Campus location — satellite view"
+                    src={contact.mapEmbed}
+                    className="absolute inset-0 h-full w-full"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                  {/* Scrim + centered address; fades out on hover to reveal the interactive map */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-6 text-center transition-opacity duration-300 group-hover:pointer-events-none group-hover:opacity-0 [text-shadow:0_1px_6px_rgba(0,0,0,0.6)]">
+                    <div className="flex flex-col items-center gap-3">
+                      <MapPin className="h-9 w-9 text-white" />
+                      <div>
+                        <div className="text-lg font-bold text-white">{site.name}</div>
+                        <div className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-white">
+                          {contact.address}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </motion.div>
         </div>
       </Section>
@@ -96,7 +128,7 @@ export function About() {
           <div>
             <Quote className="h-9 w-9 text-accent" aria-hidden="true" />
             <blockquote className="mt-3 text-lg leading-relaxed text-heading italic">
-              “{about.chairman.quote}”
+              "{about.chairman.quote}"
             </blockquote>
             <div className="mt-5">
               <div className="font-semibold text-brand">{about.chairman.name}</div>

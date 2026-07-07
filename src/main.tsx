@@ -11,7 +11,6 @@ import { Hostel } from './pages/Hostel'
 import { Achievements } from './pages/Achievements'
 import { Gallery } from './pages/Gallery'
 import { Admissions } from './pages/Admissions'
-import { Contact } from './pages/Contact'
 import { NotFound } from './pages/NotFound'
 
 const router = createBrowserRouter([
@@ -27,7 +26,6 @@ const router = createBrowserRouter([
       { path: 'achievements', element: <Achievements /> },
       { path: 'gallery', element: <Gallery /> },
       { path: 'admissions', element: <Admissions /> },
-      { path: 'contact', element: <Contact /> },
       { path: '*', element: <NotFound /> },
     ],
   },

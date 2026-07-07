@@ -21,7 +21,7 @@ export function Footer() {
     e.preventDefault()
     if (!email) return
     // TODO: connect newsletter to mailing list.
-    toast.success('Thanks for subscribing! We’ll keep you posted.')
+    toast.success(`Thanks for subscribing! We'll keep you posted.`)
     setEmail('')
   }
 
@@ -61,14 +61,24 @@ export function Footer() {
           </h4>
           <ul className="mt-5 flex flex-col gap-3">
             {footer.quickLinks.map((l) => (
-              <li key={l.to}>
-                <Link
-                  to={l.to}
-                  className="group inline-flex items-center text-sm text-white transition-colors hover:text-white"
-                >
-                  <span className="bg-accent mr-0 h-px w-0 transition-all duration-200 group-hover:mr-2 group-hover:w-4" />
-                  {l.label}
-                </Link>
+              <li key={l.label}>
+                {l.href ? (
+                  <a
+                    href={l.href}
+                    className="group inline-flex items-center text-sm text-white transition-colors hover:text-white"
+                  >
+                    <span className="bg-accent mr-0 h-px w-0 transition-all duration-200 group-hover:mr-2 group-hover:w-4" />
+                    {l.label}
+                  </a>
+                ) : (
+                  <Link
+                    to={l.to!}
+                    className="group inline-flex items-center text-sm text-white transition-colors hover:text-white"
+                  >
+                    <span className="bg-accent mr-0 h-px w-0 transition-all duration-200 group-hover:mr-2 group-hover:w-4" />
+                    {l.label}
+                  </Link>
+                )}
               </li>
             ))}
           </ul>

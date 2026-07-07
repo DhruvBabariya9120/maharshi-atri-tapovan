@@ -3,9 +3,7 @@
  * Structured so a parallel `gu` (Gujarati) translation can be layered in later.
  * TODO markers = content the school must still supply; rendered as clear placeholders.
  */
-
 export const TODO = 'TODO' as const
-
 export const site = {
   name: 'Maharshi Atri Tapovan',
   shortName: 'MAT',
@@ -21,8 +19,8 @@ export const site = {
     'Maharshi Atri Tapovan, Piplaj (Gandhinagar) — a Gujarati-medium GSEB residential school for boys (Std 4–10) blending modern education with yoga, sports, culture and moral values. 100% SSC results for the last 3 years.',
   copyright: '© 2026 Maharshi Atri Tapovan, Piplaj. All rights reserved.',
 }
-
-export const nav = [
+export type NavItem = { label: string; to?: string; href?: string }
+export const nav: NavItem[] = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
   { label: 'Academics', to: '/academics' },
@@ -31,9 +29,7 @@ export const nav = [
   { label: 'Achievements', to: '/achievements' },
   { label: 'Gallery', to: '/gallery' },
   { label: 'Admissions', to: '/admissions' },
-  { label: 'Contact', to: '/contact' },
 ]
-
 export const hero = {
   headline: 'Where a Boy Becomes a Balanced Man',
   subheadline:
@@ -41,21 +37,19 @@ export const hero = {
   primaryCta: { label: 'Admission Enquiry', to: '/admissions' },
   secondaryCta: { label: 'Explore Campus Life', to: '/campus-life' },
 }
-
 export const stats = [
   { value: 2003, suffix: '', label: 'Serving since', isYear: true, icon: 'GraduationCap' },
   {
     value: 0,
     suffix: '',
     label: 'Std 4–10 · Boys residential',
-    display: 'P–10',
+    display: '4–10',
     icon: 'BookOpen',
   },
   { value: 100, suffix: '%', label: 'SSC result — last 3 years', icon: 'Award' },
   { value: 3, prefix: 'Top ', suffix: '', label: 'In Gujarat, SSC 2026', icon: 'Medal' },
   { value: 50, suffix: '+', label: 'Activities beyond books', icon: 'Palette' },
 ]
-
 export const about = {
   intro:
     'Maharshi Atri Tapovan (MAT) is a Gujarati-medium residential school for boys located amidst the calm, green surroundings of Piplaj on the Gandhinagar–Mahudi road. Started in 2003, the campus runs as a modern-day tapovan — a place where classroom learning, physical training, art, spirituality and self-discipline grow together. Every student lives, learns, plays and prays on the same campus, guided by teachers and caretakers around the clock.',
@@ -83,7 +77,6 @@ export const about = {
       'When we began this journey in 2003, our dream was simple — to create a place where a boy is not merely taught, but shaped. Over the years, our students have brought home 100% board results, state and national honours in sports and culture, and above all, the blessings of thousands of parents. I invite every parent to visit our campus, watch our students’ daily life, and experience the difference a tapovan makes.',
   },
 }
-
 export const academics = {
   intro:
     'MAT follows the Gujarat Board (GSEB) curriculum in Gujarati medium — from Std 4 through Std 10. Small class strength, supervised evening study in the hostel, and weekly testing ensure that every boy — not just the topper — performs to his best.',
@@ -145,7 +138,6 @@ export const academics = {
     },
   ],
 }
-
 export const campusLife = {
   intro:
     "With more than 50 activities woven into daily life, a MAT boy's day is never only about textbooks. Body, mind, art and spirit are trained together.",
@@ -216,7 +208,6 @@ export const campusLife = {
     },
   ],
 }
-
 export const hostel = {
   intro:
     'Every MAT student is a boarder, so hostel life is not an add-on — it is the heart of the tapovan. Safety, hygiene and warmth come first.',
@@ -281,7 +272,6 @@ export const hostel = {
     { time: '21:30', activity: 'Lights out', confirmed: false },
   ],
 }
-
 export const achievements = [
   {
     icon: 'Award',
@@ -306,7 +296,6 @@ export const achievements = [
     body: 'Our students shine in cultural and historical drama, including staging the longest historical dramatic play at the MAT Annual Function.',
   },
 ]
-
 export const galleryCategories = [
   { key: 'annual', label: 'Annual Function', icon: 'PartyPopper' },
   { key: 'sports', label: 'Sports & Grounds', icon: 'Trophy' },
@@ -315,12 +304,10 @@ export const galleryCategories = [
   { key: 'arts', label: 'Art, Craft & Music', icon: 'Palette' },
   { key: 'campus', label: 'Campus & Hostel', icon: 'Building2' },
 ]
-
 /** Placeholder gallery tiles — 3 per category until real photos arrive. */
 export const galleryItems = galleryCategories.flatMap((c) =>
   [1, 2, 3].map((n) => ({ id: `${c.key}-${n}`, category: c.key, label: c.label, icon: c.icon })),
 )
-
 export const testimonials = {
   note: 'Sample testimonials drafted for layout — to be replaced with real quotes and names (with permission).',
   items: [
@@ -344,7 +331,6 @@ export const testimonials = {
     },
   ],
 }
-
 export const admissions = {
   intro:
     'Admissions are open for boys seeking a residential education from Std 4 to Std 10 (Gujarati medium, GSEB). Seats are limited, and we encourage parents to visit the campus with their child before finalising.',
@@ -395,7 +381,6 @@ export const admissions = {
   ],
   successMessage: 'Thank you! Our office will call you within 1–2 working days.',
 }
-
 export const contact = {
   address:
     'Maharshi Atri Tapovan, Gandhinagar–Mahudi Road, Piplaj (Near Nava Piplaj), Ta. & Dist. Gandhinagar, Gujarat — 382850',
@@ -411,7 +396,9 @@ export const contact = {
     encodeURIComponent(
       'I would like to know more about admissions at Maharshi Atri Tapovan for my child. Please share the admission process and other details. Thank you.',
     ),
-  mapEmbed: TODO, // Google Maps embed URL
+  // Google Maps embed — satellite (t=k) view, coordinate query = clean pin, no place card
+  mapEmbed:
+    'https://maps.google.com/maps?q=23.3152841,72.6818344&t=k&z=17&output=embed',
   socials: {
     facebook:
       'https://www.facebook.com/p/Maharshi-ATRI-Tapovan-MAT-100054428802157/',
@@ -419,7 +406,6 @@ export const contact = {
     youtube: 'https://youtube.com/@maharshiatritapovan.gandhinaga',
   },
 }
-
 export const footer = {
   about:
     'Maharshi Atri Tapovan, Piplaj — a residential gurukul-style school for boys (Std 4–10) blending Gujarat Board education with sports, culture, yoga and moral values since 2003.',
@@ -429,6 +415,72 @@ export const footer = {
     { label: 'Hostel', to: '/hostel' },
     { label: 'Admissions', to: '/admissions' },
     { label: 'Gallery', to: '/gallery' },
-    { label: 'Contact', to: '/contact' },
-  ],
+    { label: 'Contact', href: 'tel:+918200987958' },
+  ] as NavItem[],
 }
+
+/** Canonical production origin — no trailing slash. Used for canonical tags, OG URLs and the sitemap. */
+export const SITE_URL = 'https://atritapovan.com'
+
+/**
+ * Per-route SEO metadata. `path` matches react-router pathname exactly.
+ * Applied at runtime by the SEO effect in App.tsx so each page gets a unique
+ * <title>, description and canonical URL for search engines and social shares.
+ */
+export type RouteSeo = { path: string; title: string; description: string }
+
+export const seoRoutes: RouteSeo[] = [
+  {
+    path: '/',
+    title: site.seoTitle,
+    description: site.metaDescription,
+  },
+  {
+    path: '/about',
+    title: `About the School | ${site.name}`,
+    description:
+      'Discover Maharshi Atri Tapovan — a gurukul-inspired residential school for boys in Piplaj, Gandhinagar, blending GSEB academics with yoga, sports, culture and self-discipline since 2003.',
+  },
+  {
+    path: '/academics',
+    title: `Academics — GSEB Curriculum (Std 4–10) | ${site.name}`,
+    description:
+      'Gujarati-medium GSEB academics from the Primary Section to Std 10 at Maharshi Atri Tapovan, with 100% SSC results for the last three years and a values-driven learning approach.',
+  },
+  {
+    path: '/campus-life',
+    title: `Campus Life — Yoga, Sports & Culture | ${site.name}`,
+    description:
+      'A day in the life at Maharshi Atri Tapovan: yoga, sports, cultural activities, spiritual practice and disciplined routines on a green residential campus near Gandhinagar.',
+  },
+  {
+    path: '/hostel',
+    title: `Hostel & Boarding for Boys | ${site.name}`,
+    description:
+      'Safe, secure and affordable hostel and boarding facilities for boys at Maharshi Atri Tapovan, Piplaj — nutritious meals, caring wardens and a structured daily routine.',
+  },
+  {
+    path: '/achievements',
+    title: `Achievements & Results | ${site.name}`,
+    description:
+      'Academic results, sports honours and cultural achievements of Maharshi Atri Tapovan students — including 100% SSC results for the last three years.',
+  },
+  {
+    path: '/gallery',
+    title: `Photo Gallery | ${site.name}`,
+    description:
+      'Explore photos of the campus, classrooms, prayer hall, hostel, sports and events at Maharshi Atri Tapovan, Piplaj (Gandhinagar).',
+  },
+  {
+    path: '/admissions',
+    title: `Admissions 2026–27 | ${site.name}`,
+    description:
+      'Admissions are open for the 2026–27 session at Maharshi Atri Tapovan. Learn the process, eligibility and fees, and submit an admission enquiry for your child.',
+  },
+  {
+    path: '/contact',
+    title: `Contact & Location | ${site.name}`,
+    description:
+      'Contact Maharshi Atri Tapovan, Piplaj (Near Nava Piplaj), Gandhinagar–Mahudi Road. Call the school office, send an enquiry or plan a campus visit.',
+  },
+]
