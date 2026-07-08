@@ -5,7 +5,7 @@ import { Mail, MapPin, Phone, Send } from 'lucide-react'
 import { Container } from '../ui/Container'
 import { SocialIcon } from '../ui/SocialIcon'
 import { contact, footer, site, TODO } from '../../data/site'
-import logo from '../../assets/logo.svg'
+import logo from '../../assets/logo-256.png'
 
 const socials = [
   { brand: 'whatsapp' as const, label: 'WhatsApp', href: contact.whatsappLink },

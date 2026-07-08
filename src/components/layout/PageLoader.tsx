@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import logo from '../../assets/logo.svg'
+import logo from '../../assets/logo-256.png'
 import { site } from '../../data/site'
 
 export function PageLoader() {

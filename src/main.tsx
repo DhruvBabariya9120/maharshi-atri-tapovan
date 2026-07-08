@@ -1,17 +1,22 @@
-import { StrictMode } from 'react'
+import { StrictMode, Suspense, lazy, type ComponentType } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import { Home } from './pages/Home'
-import { About } from './pages/About'
-import { Academics } from './pages/Academics'
-import { CampusLife } from './pages/CampusLife'
-import { Hostel } from './pages/Hostel'
-import { Achievements } from './pages/Achievements'
-import { Gallery } from './pages/Gallery'
-import { Admissions } from './pages/Admissions'
-import { NotFound } from './pages/NotFound'
+
+// Home stays eager (first paint); other routes load on demand.
+const load = (p: () => Promise<Record<string, ComponentType>>, name: string) =>
+  lazy(() => p().then((m) => ({ default: m[name] })))
+
+const About = load(() => import('./pages/About'), 'About')
+const Academics = load(() => import('./pages/Academics'), 'Academics')
+const CampusLife = load(() => import('./pages/CampusLife'), 'CampusLife')
+const Hostel = load(() => import('./pages/Hostel'), 'Hostel')
+const Achievements = load(() => import('./pages/Achievements'), 'Achievements')
+const Gallery = load(() => import('./pages/Gallery'), 'Gallery')
+const Admissions = load(() => import('./pages/Admissions'), 'Admissions')
+const NotFound = load(() => import('./pages/NotFound'), 'NotFound')
 
 const router = createBrowserRouter([
   {
@@ -33,6 +38,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <Suspense fallback={null}>
+      <RouterProvider router={router} />
+    </Suspense>
   </StrictMode>,
 )

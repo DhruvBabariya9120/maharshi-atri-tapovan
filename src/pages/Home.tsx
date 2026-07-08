@@ -90,7 +90,6 @@ function HomeHero() {
         style={{
           backgroundImage:
             'radial-gradient(circle at 12% 18%, rgba(59,130,246,0.35), transparent 42%), radial-gradient(circle at 88% 22%, rgba(244,114,182,0.18), transparent 45%), radial-gradient(circle at 60% 90%, rgba(147,197,253,0.18), transparent 45%)',
-          backgroundAttachment: 'fixed',
         }}
         aria-hidden="true"
       />
