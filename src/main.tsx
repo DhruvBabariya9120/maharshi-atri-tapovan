@@ -1,45 +1,54 @@
-import { StrictMode, Suspense, lazy, type ComponentType } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import { Home } from './pages/Home'
 
-// Home stays eager (first paint); other routes load on demand.
-const load = (p: () => Promise<Record<string, ComponentType>>, name: string) =>
-  lazy(() => p().then((m) => ({ default: m[name] })))
-
-const About = load(() => import('./pages/About'), 'About')
-const Academics = load(() => import('./pages/Academics'), 'Academics')
-const CampusLife = load(() => import('./pages/CampusLife'), 'CampusLife')
-const Hostel = load(() => import('./pages/Hostel'), 'Hostel')
-const Achievements = load(() => import('./pages/Achievements'), 'Achievements')
-const Gallery = load(() => import('./pages/Gallery'), 'Gallery')
-const Admissions = load(() => import('./pages/Admissions'), 'Admissions')
-const NotFound = load(() => import('./pages/NotFound'), 'NotFound')
-
+// Home stays eager (first paint). Other routes use the router's native `lazy`,
+// which awaits the chunk BEFORE rendering the route — the page transition never
+// runs against an empty, still-downloading page.
 const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
     children: [
       { index: true, element: <Home /> },
-      { path: 'about', element: <About /> },
-      { path: 'academics', element: <Academics /> },
-      { path: 'campus-life', element: <CampusLife /> },
-      { path: 'hostel', element: <Hostel /> },
-      { path: 'achievements', element: <Achievements /> },
-      { path: 'gallery', element: <Gallery /> },
-      { path: 'admissions', element: <Admissions /> },
-      { path: '*', element: <NotFound /> },
+      { path: 'about', lazy: () => import('./pages/About').then((m) => ({ Component: m.About })) },
+      {
+        path: 'academics',
+        lazy: () => import('./pages/Academics').then((m) => ({ Component: m.Academics })),
+      },
+      {
+        path: 'campus-life',
+        lazy: () => import('./pages/CampusLife').then((m) => ({ Component: m.CampusLife })),
+      },
+      {
+        path: 'hostel',
+        lazy: () => import('./pages/Hostel').then((m) => ({ Component: m.Hostel })),
+      },
+      {
+        path: 'achievements',
+        lazy: () => import('./pages/Achievements').then((m) => ({ Component: m.Achievements })),
+      },
+      {
+        path: 'gallery',
+        lazy: () => import('./pages/Gallery').then((m) => ({ Component: m.Gallery })),
+      },
+      {
+        path: 'admissions',
+        lazy: () => import('./pages/Admissions').then((m) => ({ Component: m.Admissions })),
+      },
+      {
+        path: '*',
+        lazy: () => import('./pages/NotFound').then((m) => ({ Component: m.NotFound })),
+      },
     ],
   },
 ])
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Suspense fallback={null}>
-      <RouterProvider router={router} />
-    </Suspense>
+    <RouterProvider router={router} />
   </StrictMode>,
 )
