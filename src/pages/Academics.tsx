@@ -66,7 +66,6 @@ const method = [
 ]
 
 export function Academics() {
-  const reduce = useReducedMotion()
   return (
     <>
       <PageHero
@@ -88,12 +87,10 @@ export function Academics() {
                   'radial-gradient(circle at 12% 15%, rgba(59,130,246,0.35), transparent 42%), radial-gradient(circle at 88% 20%, rgba(244,114,182,0.30), transparent 46%)',
               }}
             />
-            {/* floating decorative blob */}
-            <motion.div
+            {/* decorative blob (static — an animated blur repaints every frame) */}
+            <div
               aria-hidden="true"
               className="pointer-events-none absolute -top-16 -right-10 h-56 w-56 rounded-full bg-accent/25 blur-3xl"
-              animate={reduce ? undefined : { y: [0, 18, 0] }}
-              transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
             />
             <div className="relative">
               <motion.div variants={fadeUp} {...reveal}>

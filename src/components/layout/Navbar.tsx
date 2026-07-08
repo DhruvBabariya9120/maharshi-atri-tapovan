@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring } from 'framer-motion'
 import { Menu, Phone, X } from 'lucide-react'
 import { contact, nav, site } from '../../data/site'
-import logo from '../../assets/logo.svg'
+import logo from '../../assets/logo-256.png'
 
 export function Navbar() {
   const [open, setOpen] = useState(false)
