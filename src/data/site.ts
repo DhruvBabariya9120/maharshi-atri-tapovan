@@ -399,6 +399,13 @@ export const contact = {
   // Google Maps embed — satellite (t=k) view, coordinate query = clean pin, no place card
   mapEmbed:
     'https://maps.google.com/maps?q=23.3152841,72.6818344&t=k&z=17&output=embed',
+  // Maps URLs API deep link (no key needed) — opens the native Google Maps app on phones.
+  // Name + address query so Maps shows the school's name, not raw coordinates.
+  mapLink:
+    'https://www.google.com/maps/search/?api=1&query=' +
+    encodeURIComponent(
+      'Maharshi Atri Tapovan, Gandhinagar-Mahudi Road, Piplaj, Gandhinagar, Gujarat 382850',
+    ),
   socials: {
     facebook:
       'https://www.facebook.com/p/Maharshi-ATRI-Tapovan-MAT-100054428802157/',
