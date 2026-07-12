@@ -49,6 +49,7 @@ export const stats = [
   { value: 100, suffix: '%', label: 'SSC result — last 3 years', icon: 'Award' },
   { value: 3, prefix: 'Top ', suffix: '', label: 'In Gujarat, SSC 2026', icon: 'Medal' },
   { value: 50, suffix: '+', label: 'Activities beyond books', icon: 'Palette' },
+  { value: 5000, suffix: '+', label: 'Resident students passed out', icon: 'Users' },
 ]
 export const about = {
   intro:

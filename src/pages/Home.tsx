@@ -152,7 +152,7 @@ export function Home() {
 
       {/* Stats strip */}
       <Section tone="surface" className="!py-16">
-        <Reveal className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5" gap={0.08}>
+        <Reveal className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6" gap={0.08}>
           {stats.map((s) => (
             <RevealItem key={s.label} className="h-full">
               <StatCounter stat={s} />
