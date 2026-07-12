@@ -13,7 +13,7 @@ export const site = {
   medium: 'Gujarati Medium',
   type: 'Residential School & Hostel for Boys',
   location:
-    'Gandhinagar–Mahudi Road, Piplaj (Near Nava Piplaj), Ta. & Dist. Gandhinagar, Gujarat — 382850',
+    'Gandhinagar–Mahudi Road, Piplaj (Near Nava Piplaj), Ta. & Dist. Gandhinagar, Gujarat — 382650',
   seoTitle: 'Maharshi Atri Tapovan (MAT) | Residential School for Boys, Gandhinagar',
   metaDescription:
     'Maharshi Atri Tapovan, Piplaj (Gandhinagar) — a Gujarati-medium GSEB residential school for boys (Std 4–10) blending modern education with yoga, sports, culture and moral values. 100% SSC results for the last 3 years.',
@@ -266,10 +266,11 @@ export const hostel = {
     { time: '07:15', activity: 'School hours begin (with short breaks)', confirmed: true },
     { time: '13:00', activity: 'Lunch & rest', confirmed: false },
     { time: '15:00', activity: 'Afternoon classes / skill sessions', confirmed: false },
+    { time: '15:30', activity: 'Afternoon snack', confirmed: false },
     { time: '17:00', activity: 'Sports, martial arts & games', confirmed: false },
     { time: '19:00', activity: 'Evening prayer & dinner', confirmed: false },
     { time: '20:00', activity: 'Supervised self-study', confirmed: false },
-    { time: '21:30', activity: 'Lights out', confirmed: false },
+    { time: '22:00', activity: 'Lights out', confirmed: false },
   ],
 }
 export const achievements = [
@@ -306,7 +307,7 @@ export const galleryCategories = [
 ]
 /** Placeholder gallery tiles — 3 per category until real photos arrive. */
 export const galleryItems = galleryCategories.flatMap((c) =>
-  [1, 2, 3].map((n) => ({ id: `${c.key}-${n}`, category: c.key, label: c.label, icon: c.icon })),
+  [1, 2, 3].map((n) => ({ id: `${c.key}-${n}`, category: c.key, label: c.label, icon: c.icon }))
 )
 export const testimonials = {
   note: 'Sample testimonials drafted for layout — to be replaced with real quotes and names (with permission).',
@@ -370,20 +371,12 @@ export const admissions = {
     'Passport-size photographs',
     'Caste certificate (if applicable)',
   ],
-  standards: [
-    'Std 4',
-    'Std 5',
-    'Std 6',
-    'Std 7',
-    'Std 8',
-    'Std 9',
-    'Std 10',
-  ],
+  standards: ['Std 4', 'Std 5', 'Std 6', 'Std 7', 'Std 8', 'Std 9', 'Std 10'],
   successMessage: 'Thank you! Our office will call you within 1–2 working days.',
 }
 export const contact = {
   address:
-    'Maharshi Atri Tapovan, Gandhinagar–Mahudi Road, Piplaj (Near Nava Piplaj), Ta. & Dist. Gandhinagar, Gujarat — 382850',
+    'Maharshi Atri Tapovan, Gandhinagar–Mahudi Road, Piplaj (Near Nava Piplaj), Ta. & Dist. Gandhinagar, Gujarat — 382650',
   officeHours: '8:00 AM – 12:00 PM',
   schoolOffice: '+91 82009 87958',
   admissionsPhone: '+91 82009 87958',
@@ -394,21 +387,19 @@ export const contact = {
   whatsappLink:
     'https://wa.me/918160389136?text=' +
     encodeURIComponent(
-      'I would like to know more about admissions at Maharshi Atri Tapovan for my child. Please share the admission process and other details. Thank you.',
+      'I would like to know more about admissions at Maharshi Atri Tapovan for my child. Please share the admission process and other details. Thank you.'
     ),
   // Google Maps embed — satellite (t=k) view, coordinate query = clean pin, no place card
-  mapEmbed:
-    'https://maps.google.com/maps?q=23.3152841,72.6818344&t=k&z=17&output=embed',
+  mapEmbed: 'https://maps.google.com/maps?q=23.3152841,72.6818344&t=k&z=17&output=embed',
   // Maps URLs API deep link (no key needed) — opens the native Google Maps app on phones.
   // Name + address query so Maps shows the school's name, not raw coordinates.
   mapLink:
     'https://www.google.com/maps/search/?api=1&query=' +
     encodeURIComponent(
-      'Maharshi Atri Tapovan, Gandhinagar-Mahudi Road, Piplaj, Gandhinagar, Gujarat 382850',
+      'Maharshi Atri Tapovan, Gandhinagar-Mahudi Road, Piplaj, Gandhinagar, Gujarat 382650'
     ),
   socials: {
-    facebook:
-      'https://www.facebook.com/p/Maharshi-ATRI-Tapovan-MAT-100054428802157/',
+    facebook: 'https://www.facebook.com/p/Maharshi-ATRI-Tapovan-MAT-100054428802157/',
     instagram: 'https://www.instagram.com/maharshi_atri_tapovan',
     youtube: 'https://youtube.com/@maharshiatritapovan.gandhinaga',
   },

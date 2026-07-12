@@ -82,7 +82,7 @@ export function Hostel() {
       <Section tone="blue">
         <SectionHeading
           eyebrow="A Day at the Tapovan"
-          title="From 05:15 wake-up to 21:30 lights out"
+          title="From 05:15 wake-up to 22:00 lights out"
           subtitle="A rhythm that balances study, sport, prayer and rest — every single day."
         />
         <div className="mt-16">
