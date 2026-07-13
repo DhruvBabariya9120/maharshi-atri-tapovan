@@ -147,6 +147,7 @@ export const campusLife = {
       key: 'spirituality',
       icon: 'Sparkles',
       title: 'Spirituality & Discipline',
+      image: { src: '/yoga-suryanamaskar.jpg', alt: 'Students performing Suryanamaskar together on the ground' },
       items: [
         'Morning prayer with Shrimad Bhagavad Gita chanting',
         'Yoga',
@@ -160,6 +161,7 @@ export const campusLife = {
       key: 'sports',
       icon: 'Trophy',
       title: 'Sports & Physical Training',
+      image: { src: '/burning-ring-jump.jpg', alt: 'A student leaping through a burning ring during an acrobatics display' },
       items: [
         'Volleyball',
         'Kabaddi',
@@ -188,6 +190,7 @@ export const campusLife = {
       key: 'culture',
       icon: 'Drama',
       title: 'Culture, Arts & Expression',
+      image: { src: '/function-22.jpg', alt: 'Students performing a costumed folk dance on stage' },
       items: [
         'Historical and cultural drama — including the longest historical dramatic play staged at our Annual Function',
         'Oratory (public speaking) competitions',
@@ -200,6 +203,7 @@ export const campusLife = {
       key: 'lifeskills',
       icon: 'HeartHandshake',
       title: 'Life Skills & Personal Growth',
+      image: { src: '/swachh-bharat-formation.jpg', alt: 'Aerial view of students forming a Swachh Bharat campaign display on the ground' },
       items: [
         "Gruh udhyog (home-industry) training — learning to create with one's own hands",
         'Child counselling with future-advantage skill training',
@@ -300,16 +304,84 @@ export const achievements = [
 ]
 export const galleryCategories = [
   { key: 'annual', label: 'Annual Function', icon: 'PartyPopper' },
-  { key: 'sports', label: 'Sports & Grounds', icon: 'Trophy' },
-  { key: 'festivals', label: 'Festival Celebrations', icon: 'Sparkles' },
-  { key: 'yoga', label: 'Yoga, Prayer & Meditation', icon: 'Flower2' },
-  { key: 'arts', label: 'Art, Craft & Music', icon: 'Palette' },
-  { key: 'campus', label: 'Campus & Hostel', icon: 'Building2' },
+  { key: 'culture', label: 'Culture & Performing Arts', icon: 'Drama' },
+  { key: 'sports', label: 'Sports & Martial Arts', icon: 'Trophy' },
+  { key: 'yoga', label: 'Yoga & Prayer', icon: 'Flower2' },
+  { key: 'academics', label: 'Classrooms & Labs', icon: 'BookOpen' },
+  { key: 'excursions', label: 'Trips & Excursions', icon: 'MapPin' },
 ]
-/** Placeholder gallery tiles — 3 per category until real photos arrive. */
-export const galleryItems = galleryCategories.flatMap((c) =>
-  [1, 2, 3].map((n) => ({ id: `${c.key}-${n}`, category: c.key, label: c.label, icon: c.icon }))
-)
+
+export type GalleryItem = {
+  id: string
+  category: string
+  src: string
+  alt: string
+  icon: string
+}
+
+/** Real campus photos, categorised. `src` paths are served from /public. */
+export const galleryItems: GalleryItem[] = [
+  // Annual Function — costume drama & stage performances
+  { id: 'annual-1', category: 'annual', src: '/drama-lav-kush.jpg', alt: 'Students perform the Lav–Kush play with a decorated horse on the Annual Function stage', icon: 'PartyPopper' },
+  { id: 'annual-2', category: 'annual', src: '/function-11.jpg', alt: 'Students costumed as Ram, Lakshman and Sita during the Annual Function drama', icon: 'PartyPopper' },
+  { id: 'annual-3', category: 'annual', src: '/function-13.jpg', alt: 'Historical drama with students in turbans and traditional costume', icon: 'PartyPopper' },
+  { id: 'annual-4', category: 'annual', src: '/function-1.jpg', alt: 'Group costume performance on the Annual Function stage', icon: 'PartyPopper' },
+  { id: 'annual-5', category: 'annual', src: '/function-16.jpg', alt: 'Primary-section children performing a dance on stage', icon: 'PartyPopper' },
+  { id: 'annual-6', category: 'annual', src: '/function-21.jpg', alt: 'Young students in yellow costumes dancing at the Annual Function', icon: 'PartyPopper' },
+
+  // Culture & Performing Arts — dance, music, mythological drama
+  { id: 'culture-1', category: 'culture', src: '/function-22.jpg', alt: 'Warrior-themed folk dance with sticks and swords', icon: 'Drama' },
+  { id: 'culture-2', category: 'culture', src: '/function-2.jpg', alt: 'Solo classical dance performance in front of a lotus backdrop', icon: 'Drama' },
+  { id: 'culture-3', category: 'culture', src: '/function-24.jpg', alt: 'Students performing a drum and manjira dance in golden costumes', icon: 'Drama' },
+  { id: 'culture-4', category: 'culture', src: '/function-5.jpg', alt: 'Radha–Krishna drama with a peacock-feather backdrop', icon: 'Drama' },
+  { id: 'culture-5', category: 'culture', src: '/function-7.jpg', alt: 'Ramayan-themed dance-drama with a full cast on stage', icon: 'Drama' },
+  { id: 'culture-6', category: 'culture', src: '/function-3.jpg', alt: 'Group dance with a sun prop at the Annual Function', icon: 'Drama' },
+  { id: 'culture-7', category: 'culture', src: '/function-17.jpg', alt: 'Students in cream kurtas performing a stick-formation dance', icon: 'Drama' },
+  { id: 'culture-8', category: 'culture', src: '/function-15.jpg', alt: 'Students dressed as saints in orange robes and turbans', icon: 'Drama' },
+  { id: 'culture-9', category: 'culture', src: '/function-4.jpg', alt: 'Krishna-themed drama scene with a peacock prop', icon: 'Drama' },
+  { id: 'culture-10', category: 'culture', src: '/function-9.jpg', alt: 'Patriotic-themed drama performance by students', icon: 'Drama' },
+  { id: 'culture-11', category: 'culture', src: '/function-18.jpg', alt: 'Mythological drama scene with Krishna and a seated student', icon: 'Drama' },
+  { id: 'culture-12', category: 'culture', src: '/function-19.jpg', alt: 'A dramatic scene from a historical play', icon: 'Drama' },
+  { id: 'culture-13', category: 'culture', src: '/function-20.jpg', alt: 'Expressive mime-style stage performance', icon: 'Drama' },
+
+  // Sports & Martial Arts
+  { id: 'sports-1', category: 'sports', src: '/karate.jpg', alt: 'Students practising karate in formation on the school ground', icon: 'Trophy' },
+  { id: 'sports-2', category: 'sports', src: '/burning-ring-jump.jpg', alt: 'A student leaping through a burning ring at an evening event', icon: 'Trophy' },
+  { id: 'sports-3', category: 'sports', src: '/function-8.jpg', alt: 'Students forming a human pyramid on stage', icon: 'Trophy' },
+  { id: 'sports-4', category: 'sports', src: '/function-14.jpg', alt: 'A large human-pyramid formation during a performance', icon: 'Trophy' },
+  { id: 'sports-5', category: 'sports', src: '/function-6.jpg', alt: 'Taekwondo demonstration on stage', icon: 'Trophy' },
+  { id: 'sports-6', category: 'sports', src: '/function-10.jpg', alt: 'Burning ring-jump acrobatic act at the Annual Function', icon: 'Trophy' },
+  { id: 'sports-7', category: 'sports', src: '/function-23.jpg', alt: 'Two students performing a burning-ring acrobatic stunt', icon: 'Trophy' },
+
+  // Yoga & Prayer
+  { id: 'yoga-1', category: 'yoga', src: '/yoga-suryanamaskar.jpg', alt: 'Students performing Suryanamaskar in a V-formation on the ground', icon: 'Flower2' },
+
+  // Classrooms & Labs
+  { id: 'academics-1', category: 'academics', src: '/library.jpg', alt: 'Students reading at tables in the school library', icon: 'BookOpen' },
+  { id: 'academics-2', category: 'academics', src: '/science-lab.jpg', alt: 'Students carrying out an experiment in the science laboratory', icon: 'FlaskConical' },
+
+  // Trips & Excursions
+  { id: 'excursions-1', category: 'excursions', src: '/trip-manali.jpg', alt: 'A student group photographed on a snow-covered mountain excursion', icon: 'MapPin' },
+  { id: 'excursions-2', category: 'excursions', src: '/educational-visit.jpg', alt: 'Students on an educational visit in front of a pyramid-shaped building', icon: 'MapPin' },
+  { id: 'excursions-3', category: 'excursions', src: '/excursion-sabarmati.jpg', alt: 'Students on an outdoor excursion along a sandy riverbank', icon: 'MapPin' },
+  { id: 'excursions-4', category: 'excursions', src: '/swachh-bharat-formation.jpg', alt: 'Aerial view of students forming a bicycle and "MAT" in a Swachh Bharat campaign', icon: 'MapPin' },
+]
+
+/** Named photos reused across pages (hero, teasers, section headers). */
+export const photos = {
+  library: { src: '/library.jpg', alt: 'Students reading in the school library' },
+  scienceLab: { src: '/science-lab.jpg', alt: 'Students at work in the science laboratory' },
+  yoga: { src: '/yoga-suryanamaskar.jpg', alt: 'Students performing Suryanamaskar on the ground' },
+  karate: { src: '/karate.jpg', alt: 'Students practising karate in front of the school building' },
+  ringJump: { src: '/burning-ring-jump.jpg', alt: 'A student leaping through a burning ring' },
+  annualDrama: { src: '/drama-lav-kush.jpg', alt: 'Students performing a costume drama on the Annual Function stage' },
+  cultureDance: { src: '/function-22.jpg', alt: 'Students performing a folk dance in costume' },
+  pyramid: { src: '/function-8.jpg', alt: 'Students forming a human pyramid on stage' },
+  award: { src: '/function-12.jpg', alt: 'A student receiving an award from the chief guest' },
+  campus: { src: '/karate.jpg', alt: 'The Maharshi Atri Tapovan campus building with students on the ground' },
+  trip: { src: '/trip-manali.jpg', alt: 'Students on a mountain excursion' },
+  visit: { src: '/educational-visit.jpg', alt: 'Students on an educational visit' },
+} as const
 export const testimonials = {
   note: 'Sample testimonials drafted for layout — to be replaced with real quotes and names (with permission).',
   items: [

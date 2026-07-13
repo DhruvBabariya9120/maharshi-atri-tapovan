@@ -43,7 +43,7 @@ export function GalleryGrid() {
               className="group cursor-pointer overflow-hidden rounded-2xl"
             >
               <div className="transition-transform duration-500 group-hover:scale-105">
-                <ImagePlaceholder label={item.label} icon={item.icon} ratio="square" />
+                <ImagePlaceholder src={item.src} alt={item.alt} icon={item.icon} ratio="square" />
               </div>
             </motion.div>
           ))}

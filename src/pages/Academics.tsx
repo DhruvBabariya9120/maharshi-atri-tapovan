@@ -3,12 +3,13 @@ import { animate, motion, useInView, useReducedMotion } from 'framer-motion'
 import { ClipboardCheck, Search, TrendingUp } from 'lucide-react'
 import { Section } from '../components/ui/Section'
 import { SectionHeading } from '../components/ui/SectionHeading'
-import { RevealItem } from '../components/ui/Reveal'
+import { RevealItem, Reveal } from '../components/ui/Reveal'
+import { ImagePlaceholder } from '../components/ui/ImagePlaceholder'
 import { PageHero } from '../components/layout/PageHero'
 import { CTABanner } from '../components/sections/CTABanner'
 import { Icon } from '../lib/icons'
 import { fadeUp, fadeRight, reveal, stagger } from '../lib/motion'
-import { academics } from '../data/site'
+import { academics, photos } from '../data/site'
 
 /** Count-up number that runs once when scrolled into view (jumps to final if reduced-motion). */
 function CountUp({ to, suffix }: { to: number; suffix?: string }) {
@@ -202,6 +203,23 @@ export function Academics() {
             </motion.div>
           ))}
         </motion.div>
+      </Section>
+
+      {/* 3b — IN ACTION: real photos of labs & library */}
+      <Section tone="blue" className="!pt-6">
+        <SectionHeading
+          eyebrow="Learning in Action"
+          title="Hands-on, every day"
+          subtitle="From library reading to live experiments — learning at MAT goes well beyond the textbook."
+        />
+        <Reveal className="mt-12 grid gap-6 sm:grid-cols-2" gap={0.1}>
+          <RevealItem>
+            <ImagePlaceholder src={photos.library.src} alt={photos.library.alt} ratio="video" />
+          </RevealItem>
+          <RevealItem>
+            <ImagePlaceholder src={photos.scienceLab.src} alt={photos.scienceLab.alt} ratio="video" />
+          </RevealItem>
+        </Reveal>
       </Section>
 
       {/* 4 — FACILITIES: visual grid, cards with a gradient top-border that draws in */}

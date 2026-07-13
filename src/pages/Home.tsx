@@ -23,7 +23,7 @@ import { TestimonialCarousel } from '../components/ui/TestimonialCarousel'
 import { Reveal, RevealItem } from '../components/ui/Reveal'
 import { CTABanner } from '../components/sections/CTABanner'
 import { fadeUp, reveal, stagger } from '../lib/motion'
-import { about, academics, campusLife, galleryCategories, hero, hostel, site, stats, testimonials } from '../data/site'
+import { about, academics, campusLife, hero, hostel, photos, site, stats, testimonials } from '../data/site'
 
 const whyMat = [
   {
@@ -82,6 +82,12 @@ const previews = [
   },
 ] 
 
+const galleryPreview = [
+  { key: 'annual', label: 'Annual Function', src: photos.annualDrama.src, alt: photos.annualDrama.alt },
+  { key: 'culture', label: 'Culture & Arts', src: photos.cultureDance.src, alt: photos.cultureDance.alt },
+  { key: 'sports', label: 'Sports & Martial Arts', src: photos.karate.src, alt: photos.karate.alt },
+]
+
 function HomeHero() {
   return (
     <section className="relative overflow-hidden bg-blue-900 pt-28 pb-20 text-white sm:pt-40 sm:pb-24">
@@ -134,10 +140,10 @@ function HomeHero() {
           className="relative"
         >
           <div className="grid grid-cols-2 gap-4">
-            <ImagePlaceholder label="Campus" icon="Trees" ratio="portrait" className="mt-8" />
-            <ImagePlaceholder label="Annual Function" icon="PartyPopper" ratio="portrait" />
-            <ImagePlaceholder label="Yoga & Prayer" icon="Flower2" ratio="portrait" />
-            <ImagePlaceholder label="Sports" icon="Trophy" ratio="portrait" className="-mt-8" />
+            <ImagePlaceholder src={photos.campus.src} alt={photos.campus.alt} ratio="portrait" className="mt-8" />
+            <ImagePlaceholder src={photos.annualDrama.src} alt={photos.annualDrama.alt} ratio="portrait" />
+            <ImagePlaceholder src={photos.yoga.src} alt={photos.yoga.alt} ratio="portrait" />
+            <ImagePlaceholder src={photos.ringJump.src} alt={photos.ringJump.alt} ratio="portrait" className="-mt-8" />
           </div>
         </motion.div>
       </Container>
@@ -165,7 +171,7 @@ export function Home() {
       <Section>
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <motion.div variants={fadeRightWrap} {...reveal}>
-            <ImagePlaceholder label="MAT Campus, Piplaj" icon="Building2" ratio="video" />
+            <ImagePlaceholder src={photos.campus.src} alt="Maharshi Atri Tapovan campus, Piplaj" ratio="video" />
           </motion.div>
           <div>
             <SectionHeading
@@ -273,16 +279,19 @@ export function Home() {
       <Section>
         <SectionHeading eyebrow="Gallery" title="Glimpses of the tapovan" />
         <Reveal className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" gap={0.08}>
-          {galleryCategories.slice(0, 3).map((c) => (
+          {galleryPreview.map((c) => (
             <RevealItem key={c.key}>
               <Link
                 to="/gallery"
                 aria-label={`View ${c.label} in the gallery`}
-                className="group block cursor-pointer overflow-hidden rounded-2xl"
+                className="group relative block cursor-pointer overflow-hidden rounded-2xl"
               >
                 <div className="transition-transform duration-500 group-hover:scale-105">
-                  <ImagePlaceholder label={c.label} icon={c.icon} ratio="square" />
+                  <ImagePlaceholder src={c.src} alt={c.alt} ratio="square" />
                 </div>
+                <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-sm font-semibold text-white">
+                  {c.label}
+                </span>
               </Link>
             </RevealItem>
           ))}

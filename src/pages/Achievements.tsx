@@ -2,11 +2,12 @@ import { motion } from 'framer-motion'
 import { Section } from '../components/ui/Section'
 import { SectionHeading } from '../components/ui/SectionHeading'
 import { Reveal } from '../components/ui/Reveal'
+import { ImagePlaceholder } from '../components/ui/ImagePlaceholder'
 import { PageHero } from '../components/layout/PageHero'
 import { CTABanner } from '../components/sections/CTABanner'
 import { Icon } from '../lib/icons'
 import { fadeUp, reveal, stagger } from '../lib/motion'
-import { achievements } from '../data/site'
+import { achievements, photos } from '../data/site'
 
 const highlights = [
   { big: '100%', small: 'SSC results · 3 years running' },
@@ -43,8 +44,27 @@ export function Achievements() {
         </motion.div>
       </Section>
 
-      {/* Award cards — rotating glow border + shine sweep + watermark index */}
+      {/* Featured moment — prize distribution */}
       <Section>
+        <Reveal className="grid items-center gap-10 lg:grid-cols-2" gap={0.12}>
+          <ImagePlaceholder src={photos.award.src} alt={photos.award.alt} ratio="video" />
+          <div>
+            <SectionHeading
+              eyebrow="Celebrated on Stage"
+              title="Effort, recognised in front of everyone"
+              align="left"
+            />
+            <p className="mt-6 leading-relaxed text-content">
+              From board toppers to sports and cultural champions, students are honoured on the
+              Annual Function stage — a moment of pride shared with parents, teachers and the whole
+              tapovan.
+            </p>
+          </div>
+        </Reveal>
+      </Section>
+
+      {/* Award cards — rotating glow border + shine sweep + watermark index */}
+      <Section tone="surface">
         <SectionHeading eyebrow="Honours" title="Recognition that reflects our values" />
         <Reveal className="mt-14 grid items-stretch gap-6 md:grid-cols-2" gap={0.1}>
           {achievements.map((a, i) => (

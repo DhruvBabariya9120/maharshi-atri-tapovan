@@ -12,20 +12,40 @@ const ratios: Record<Ratio, string> = {
 }
 
 /**
- * Branded placeholder shown wherever a real photo is pending.
- * Swap for an <img> once the school supplies assets.
+ * Renders a real photo when `src` is supplied, otherwise a branded
+ * "photo coming soon" placeholder with an icon + label.
  */
 export function ImagePlaceholder({
   label,
   icon,
   ratio = 'video',
   className = '',
+  src,
+  alt,
 }: {
   label?: string
   icon?: string
   ratio?: Ratio
   className?: string
+  src?: string
+  alt?: string
 }) {
+  if (src) {
+    return (
+      <div
+        className={`relative overflow-hidden rounded-2xl border border-border bg-card ${ratios[ratio]} ${className}`}
+      >
+        <img
+          src={src}
+          alt={alt ?? label ?? ''}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover"
+        />
+      </div>
+    )
+  }
+
   return (
     <div
       className={`relative flex items-center justify-center overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-tint-blue via-card to-tint-pink ${ratios[ratio]} ${className}`}

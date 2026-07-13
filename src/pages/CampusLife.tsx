@@ -2,6 +2,7 @@ import { motion, type Variants } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
 import { Section } from '../components/ui/Section'
 import { Tabs, type Tab } from '../components/ui/Tabs'
+import { ImagePlaceholder } from '../components/ui/ImagePlaceholder'
 import { PageHero } from '../components/layout/PageHero'
 import { CTABanner } from '../components/sections/CTABanner'
 import { Icon } from '../lib/icons'
@@ -31,6 +32,13 @@ function GroupContent({ group }: { group: (typeof campusLife.groups)[number] }) 
   const isSports = group.key === 'sports'
   return (
     <div>
+      {/* Representative photo for the activity group */}
+      {group.image && (
+        <motion.div variants={fadeUp} initial="hidden" animate="show" className="mb-8">
+          <ImagePlaceholder src={group.image.src} alt={group.image.alt} ratio="wide" />
+        </motion.div>
+      )}
+
       {/* Focused group header — orients the visitor the moment the tab opens */}
       <motion.div
         variants={fadeUp}
