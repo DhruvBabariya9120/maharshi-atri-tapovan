@@ -97,7 +97,7 @@ function Lightbox({ item, onClose, onSelect }: { item: GalleryItem; onClose: () 
       {/* caption + same-category suggestions */}
       <div className="p-4 sm:px-6" onClick={(e) => e.stopPropagation()}>
         <p className="mx-auto mb-3 max-w-2xl text-center text-xs leading-relaxed text-white/70 sm:text-sm">{item.alt}</p>
-        <div className="flex justify-start gap-2 overflow-x-auto pb-1 sm:justify-center">
+        <div className="scrollbar-hide flex justify-start gap-2 overflow-x-auto pb-1 sm:justify-center">
           {related.map((r) => (
             <button
               key={r.id}
@@ -125,7 +125,7 @@ export function GalleryGrid() {
   return (
     <div>
       {/* filter pills — horizontal scroll strip on mobile, centered wrap on larger screens */}
-      <div className="-mx-4 mb-8 flex gap-2.5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:mb-10 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:pb-0">
+      <div className="scrollbar-hide -mx-4 mb-8 flex gap-2.5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:mb-10 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:pb-0">
         {filters.map((f) => {
           const on = f.key === active
           const count =

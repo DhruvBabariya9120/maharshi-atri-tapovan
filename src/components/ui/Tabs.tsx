@@ -36,7 +36,7 @@ export function Tabs({ tabs }: { tabs: Tab[] }) {
         role="tablist"
         aria-label="Sections"
         onKeyDown={handleKeyDown}
-        className="mx-auto mb-10 flex max-w-3xl gap-1.5 overflow-x-auto sm:flex-wrap sm:justify-center sm:overflow-visible"
+        className="scrollbar-hide mx-auto mb-10 flex max-w-3xl gap-1.5 overflow-x-auto sm:flex-wrap sm:justify-center sm:overflow-visible"
       >
         {tabs.map((t, i) => {
           const selected = t.key === active

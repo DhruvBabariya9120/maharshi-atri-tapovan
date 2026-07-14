@@ -135,6 +135,16 @@
 }
 
 /* Utilities */
+
+/* Hide scrollbar visually while keeping scroll/swipe functional */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
 .text-gradient {
   background: linear-gradient(120deg, var(--brand), var(--accent));
   -webkit-background-clip: text;
