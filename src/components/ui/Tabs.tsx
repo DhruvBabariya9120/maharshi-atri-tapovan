@@ -36,7 +36,7 @@ export function Tabs({ tabs }: { tabs: Tab[] }) {
         role="tablist"
         aria-label="Sections"
         onKeyDown={handleKeyDown}
-        className="mx-auto mb-10 flex max-w-3xl flex-wrap justify-center gap-1.5 rounded-2xl border border-border bg-card p-1.5 shadow-card"
+        className="mx-auto mb-10 flex max-w-3xl gap-1.5 overflow-x-auto sm:flex-wrap sm:justify-center sm:overflow-visible"
       >
         {tabs.map((t, i) => {
           const selected = t.key === active
@@ -52,7 +52,7 @@ export function Tabs({ tabs }: { tabs: Tab[] }) {
               aria-controls={`panel-${t.key}`}
               tabIndex={selected ? 0 : -1}
               onClick={() => setActive(t.key)}
-              className={`relative flex min-h-11 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
+              className={`relative flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold whitespace-nowrap outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
                 selected ? 'text-white' : 'text-content hover:bg-tint-blue-soft hover:text-brand'
               }`}
             >

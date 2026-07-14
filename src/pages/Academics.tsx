@@ -93,42 +93,33 @@ export function Academics() {
               aria-hidden="true"
               className="pointer-events-none absolute -top-16 -right-10 h-56 w-56 rounded-full bg-accent/25 blur-3xl"
             />
-            <div className="relative">
+            <div className="relative text-center">
               <motion.div variants={fadeUp} {...reveal}>
                 <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3.5 py-1.5 text-xs font-semibold tracking-wide text-white uppercase ring-1 ring-white/20 backdrop-blur">
                   Proven Results
                 </span>
-                <h2 className="font-hero mt-5 max-w-2xl text-3xl font-black tracking-tight text-tint-pink sm:text-4xl">
+                <h2 className="font-hero mx-auto mt-5 max-w-2xl text-3xl font-black tracking-tight text-balance text-tint-pink sm:text-4xl">
                   100% SSC results, three years running
                 </h2>
+                <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/75">
+                  Every boy who sat the SSC (Std 10) Board examination in the last three years has passed.
+                </p>
               </motion.div>
 
               <motion.div
                 variants={stagger(0.12)}
                 {...reveal}
-                className="mt-10 grid gap-6 sm:grid-cols-3"
+                className="mx-auto mt-10 grid max-w-3xl divide-y divide-white/15 border-t border-white/15 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
               >
                 {resultStats.map((s) => (
-                  <motion.div key={s.label} variants={fadeUp}>
-                    <div className="font-display text-5xl font-extrabold tracking-tight text-white sm:text-6xl">
+                  <motion.div key={s.label} variants={fadeUp} className="px-6 py-6 sm:py-8">
+                    <div className="font-display text-5xl font-extrabold tracking-tight text-white">
                       {s.display ?? <CountUp to={s.value!} suffix={s.suffix} />}
                     </div>
-                    <div className="mt-2 text-sm leading-snug text-white/75">{s.label}</div>
+                    <div className="mx-auto mt-2 max-w-[16ch] text-sm leading-snug text-white/75">{s.label}</div>
                   </motion.div>
                 ))}
               </motion.div>
-
-              <motion.ul
-                variants={fadeUp}
-                {...reveal}
-                className="mt-10 space-y-2 border-t border-white/15 pt-6"
-              >
-                {academics.results.map((r) => (
-                  <li key={r} className="text-sm leading-relaxed text-white/85">
-                    {r}
-                  </li>
-                ))}
-              </motion.ul>
             </div>
           </div>
         </RevealItem>

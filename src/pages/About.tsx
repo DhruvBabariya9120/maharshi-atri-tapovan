@@ -31,7 +31,7 @@ export function About() {
               <p className="mt-4 leading-relaxed text-content">{about.name.body}</p>
             </motion.div>
           </div>
-          <motion.div variants={fadeUp} {...reveal}>
+          <motion.div variants={fadeUp} {...reveal} className="order-first lg:order-0">
             <div className="group relative aspect-[5/4] overflow-hidden rounded-2xl border border-border shadow-card">
               {contact.mapEmbed === TODO ? (
                 <div className="flex h-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-tint-blue to-tint-pink text-center">
@@ -56,18 +56,15 @@ export function About() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Open campus location in Google Maps"
-                    className="absolute inset-0 flex items-center justify-center bg-black/80 p-6 text-center transition-opacity duration-300 group-hover:pointer-events-none group-hover:opacity-0 [text-shadow:0_1px_6px_rgba(0,0,0,0.6)]"
+                    className="absolute inset-0 flex items-center justify-center p-6 text-center transition-opacity duration-300 group-hover:pointer-events-none group-hover:opacity-0 lg:bg-black/80 [text-shadow:0_1px_6px_rgba(0,0,0,0.6)]"
                   >
                     <div className="flex flex-col items-center gap-3">
-                      <MapPin className="h-9 w-9 text-white" />
+                      <MapPin className="hidden h-9 w-9 text-white lg:block" />
                       <div>
-                        <div className="text-lg font-bold text-white">{site.name}</div>
-                        <div className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-white">
+                        <div className="hidden text-lg font-bold text-white lg:block">{site.name}</div>
+                        <div className="mx-auto mt-1.5 hidden max-w-sm text-sm leading-relaxed text-white lg:block">
                           {contact.address}
                         </div>
-                        <span className="mt-3 inline-block rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold text-white lg:hidden">
-                          Tap to open in Google Maps
-                        </span>
                       </div>
                     </div>
                   </a>

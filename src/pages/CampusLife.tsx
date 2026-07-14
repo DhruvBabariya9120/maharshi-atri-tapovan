@@ -1,5 +1,5 @@
 import { motion, type Variants } from 'framer-motion'
-import { Sparkles } from 'lucide-react'
+import { Dices, Sparkles, Swords, Target, Volleyball, type LucideIcon } from 'lucide-react'
 import { Section } from '../components/ui/Section'
 import { Tabs, type Tab } from '../components/ui/Tabs'
 import { ImagePlaceholder } from '../components/ui/ImagePlaceholder'
@@ -20,6 +20,22 @@ const cardIn: Variants = {
   },
 }
 
+/** The 20+ sports grouped into themed clusters — reads as a programme, not a flat word cloud. */
+const sportClusters: { title: string; icon: LucideIcon; names: string[] }[] = [
+  { title: 'Team Games', icon: Volleyball, names: ['Volleyball', 'Kabaddi', 'Kho-Kho', 'Basketball'] },
+  { title: 'Racquet & Board', icon: Dices, names: ['Badminton', 'Table Tennis', 'Chess', 'Carrom'] },
+  {
+    title: 'Martial Arts & Combat',
+    icon: Swords,
+    names: ['Taekwondo', 'Judo', 'Boxing', 'Wrestling', 'Nunchaku', 'Lathidav'],
+  },
+  {
+    title: 'Adventure & Precision',
+    icon: Target,
+    names: ['Skating', 'Rifle Shooting', 'Archery', 'Pyramid Formation', 'Burning Ring Jump', 'Acrobatic Exercise'],
+  },
+]
+
 /** What each group's items are called — keeps the count line content-specific. */
 const countLabel: Record<string, string> = {
   spirituality: 'daily practices',
@@ -32,10 +48,23 @@ function GroupContent({ group }: { group: (typeof campusLife.groups)[number] }) 
   const isSports = group.key === 'sports'
   return (
     <div>
-      {/* Representative photo for the activity group */}
+      {/* Representative photo for the activity group — taller on mobile so the photo isn't a thin cropped strip */}
       {group.image && (
-        <motion.div variants={fadeUp} initial="hidden" animate="show" className="mb-8">
-          <ImagePlaceholder src={group.image.src} alt={group.image.alt} ratio="wide" />
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          className="relative mb-8 overflow-hidden rounded-2xl"
+        >
+          <ImagePlaceholder
+            src={group.image.src}
+            alt={group.image.alt}
+            ratio="auto"
+            className="aspect-4/3 sm:aspect-16/7"
+          />
+          <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/65 to-transparent p-4 pt-12 text-sm font-medium text-white">
+            {group.image.alt}
+          </span>
         </motion.div>
       )}
 
@@ -61,25 +90,53 @@ function GroupContent({ group }: { group: (typeof campusLife.groups)[number] }) 
       </motion.div>
 
       {isSports ? (
-        /* Many short names → an energetic chip cloud */
-        <motion.ul
-          variants={stagger(0.025)}
+        /* 20+ sports → themed cluster cards instead of one flat chip cloud */
+        <motion.div
+          variants={stagger(0.08)}
           initial="hidden"
           animate="show"
-          className="flex flex-wrap gap-2.5"
+          className="grid gap-4 sm:grid-cols-2"
         >
-          {group.items.map((item) => (
-            <motion.li
-              key={item}
-              variants={cardIn}
-              whileHover={{ y: -2 }}
-              className="group inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-content shadow-card transition-colors duration-200 hover:border-brand hover:bg-tint-blue-soft hover:text-brand"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-linear-to-br from-brand to-accent" />
-              {item}
-            </motion.li>
-          ))}
-        </motion.ul>
+          {sportClusters.map((cluster) => {
+            // ponytail: names hardcoded to today's data; items missing from every cluster are simply not shown
+            const items = group.items.filter((i) => cluster.names.includes(i))
+            return (
+              <motion.div
+                key={cluster.title}
+                variants={cardIn}
+                whileHover={{ y: -4 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-card transition-colors duration-300 hover:border-brand/40"
+              >
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-linear-to-r from-brand to-accent transition-transform duration-500 group-hover:scale-x-100"
+                />
+                <div className="flex items-center gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-brand to-accent text-white shadow-lift transition-transform duration-300 group-hover:scale-110">
+                    <cluster.icon className="h-5 w-5" strokeWidth={2} />
+                  </span>
+                  <div>
+                    <h4 className="font-semibold text-heading">{cluster.title}</h4>
+                    <p className="text-xs font-medium text-muted">
+                      <span className="font-semibold text-brand tabular-nums">{items.length}</span> activities
+                    </p>
+                  </div>
+                </div>
+                <ul className="mt-4 flex flex-wrap gap-2">
+                  {items.map((item) => (
+                    <li
+                      key={item}
+                      className="rounded-full border border-border bg-tint-blue-soft px-3 py-1.5 text-xs font-medium text-content transition-colors duration-200 hover:border-brand hover:text-brand"
+                    >
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            )
+          })}
+        </motion.div>
       ) : (
         /* Fewer, descriptive items → numbered editorial cards that highlight title + detail */
         <motion.ul

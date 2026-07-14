@@ -161,7 +161,7 @@ export const campusLife = {
       key: 'sports',
       icon: 'Trophy',
       title: 'Sports & Physical Training',
-      image: { src: '/burning-ring-jump.jpg', alt: 'A student leaping through a burning ring during an acrobatics display' },
+      image: { src: '/function-14.jpg', alt: 'Students in a large human-pyramid formation during a sports display' },
       items: [
         'Volleyball',
         'Kabaddi',

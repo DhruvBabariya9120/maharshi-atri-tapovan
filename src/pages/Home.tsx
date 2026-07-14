@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
   ArrowRight,
   BadgeCheck,
@@ -24,7 +25,6 @@ import { Reveal, RevealItem } from '../components/ui/Reveal'
 import { CTABanner } from '../components/sections/CTABanner'
 import { fadeUp, reveal, stagger } from '../lib/motion'
 import { about, academics, campusLife, hero, hostel, photos, site, stats, testimonials } from '../data/site'
-
 const whyMat = [
   {
     icon: BookOpen,
@@ -57,7 +57,6 @@ const whyMat = [
     body: 'Self-managed routines, counselling and gruh udyog build responsible, self-reliant young men.',
   },
 ]
-
 const previews = [
   {
     eyebrow: 'Academics',
@@ -80,14 +79,92 @@ const previews = [
     to: '/hostel',
     icon: 'BedDouble',
   },
-] 
-
+]
 const galleryPreview = [
   { key: 'annual', label: 'Annual Function', src: photos.annualDrama.src, alt: photos.annualDrama.alt },
   { key: 'culture', label: 'Culture & Arts', src: photos.cultureDance.src, alt: photos.cultureDance.alt },
   { key: 'sports', label: 'Sports & Martial Arts', src: photos.karate.src, alt: photos.karate.alt },
 ]
-
+const heroSlides = [
+  { ...photos.campus, label: 'Campus Life' },
+  { ...photos.library, label: 'Library & Learning' },
+  { ...photos.yoga, label: 'Yoga & Discipline' },
+  { ...photos.annualDrama, label: 'Culture & Stage' },
+  { ...photos.trip, label: 'Trips & Excursions' },
+]
+const SLIDE_MS = 5000
+function HeroCarousel() {
+  const [index, setIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const reduceMotion = useReducedMotion()
+  const slide = heroSlides[index]
+  const go = (d: number) => setIndex((i) => (i + d + heroSlides.length) % heroSlides.length)
+  useEffect(() => {
+    if (paused) return
+    const t = setInterval(() => setIndex((i) => (i + 1) % heroSlides.length), SLIDE_MS)
+    return () => clearInterval(t)
+  }, [paused])
+  return (
+    <motion.div
+      className="shadow-lift relative aspect-4/3 touch-pan-y overflow-hidden rounded-3xl border border-white/15"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.12}
+      onDragEnd={(_, info) => {
+        if (info.offset.x < -50) go(1)
+        else if (info.offset.x > 50) go(-1)
+      }}
+      role="region"
+      aria-label="Campus photo highlights"
+    >
+      <AnimatePresence initial={false}>
+        <motion.img
+          key={index}
+          src={slide.src}
+          alt={slide.alt}
+          initial={{ opacity: 0, scale: 1 }}
+          animate={{ opacity: 1, scale: reduceMotion ? 1 : 1.08 }}
+          exit={{ opacity: 0 }}
+          transition={{
+            opacity: { duration: 0.8, ease: 'easeOut' },
+            // slow Ken Burns zoom across the whole slide duration
+            scale: { duration: (SLIDE_MS + 1000) / 1000, ease: 'linear' },
+          }}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      </AnimatePresence>
+      {/* caption + dots */}
+      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-linear-to-t from-black/70 via-black/30 to-transparent p-5">
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={index}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
+            className="text-sm font-semibold text-white"
+          >
+            {slide.label}
+          </motion.span>
+        </AnimatePresence>
+        <div className="flex gap-2">
+          {heroSlides.map((s, i) => (
+            <button
+              key={s.src}
+              aria-label={`Show ${s.label}`}
+              onClick={() => setIndex(i)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                i === index ? 'w-6 bg-white' : 'w-2 bg-white/40 hover:bg-white/70'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
 function HomeHero() {
   return (
     <section className="relative overflow-hidden bg-blue-900 pt-28 pb-20 text-white sm:pt-40 sm:pb-24">
@@ -106,6 +183,10 @@ function HomeHero() {
               <BadgeCheck className="h-3.5 w-3.5" /> {site.board} · {site.medium}
             </Badge>
           </motion.div>
+          {/* mobile-only: carousel sits between the board badge and the headline */}
+          <motion.div variants={fadeUp} className="mt-6 lg:hidden">
+            <HeroCarousel />
+          </motion.div>
           <motion.h1
             variants={fadeUp}
             className="font-hero text-tint-pink mt-5 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl"
@@ -118,44 +199,36 @@ function HomeHero() {
           >
             {hero.subheadline}
           </motion.p>
-          <motion.div variants={fadeUp} className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button to={hero.primaryCta.to} variant="accent" size="lg">
+          <motion.div variants={fadeUp} className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:items-start">
+            <Button to={hero.primaryCta.to} variant="accent" size="lg" className="w-full sm:w-auto">
               {hero.primaryCta.label} <ArrowRight className="h-4 w-4" />
             </Button>
             <Button
               to={hero.secondaryCta.to}
               variant="outline"
               size="lg"
-              className="!border-white/40 !bg-white/10 !text-white hover:!border-white"
+              className="w-full border-white/40! bg-white/10! text-white! hover:border-white! sm:w-auto"
             >
               {hero.secondaryCta.label}
             </Button>
           </motion.div>
         </motion.div>
-
         <motion.div
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="relative"
+          className="relative hidden lg:block"
         >
-          <div className="grid grid-cols-2 gap-4">
-            <ImagePlaceholder src={photos.campus.src} alt={photos.campus.alt} ratio="portrait" className="mt-8" />
-            <ImagePlaceholder src={photos.annualDrama.src} alt={photos.annualDrama.alt} ratio="portrait" />
-            <ImagePlaceholder src={photos.yoga.src} alt={photos.yoga.alt} ratio="portrait" />
-            <ImagePlaceholder src={photos.ringJump.src} alt={photos.ringJump.alt} ratio="portrait" className="-mt-8" />
-          </div>
+          <HeroCarousel />
         </motion.div>
       </Container>
     </section>
   )
 }
-
 export function Home() {
   return (
     <>
       <HomeHero />
-
       {/* Stats strip */}
       <Section tone="surface" className="!py-16">
         <Reveal className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6" gap={0.08}>
@@ -166,7 +239,6 @@ export function Home() {
           ))}
         </Reveal>
       </Section>
-
       {/* About teaser */}
       <Section>
         <div className="grid items-center gap-12 lg:grid-cols-2">
@@ -190,7 +262,6 @@ export function Home() {
           </div>
         </div>
       </Section>
-
       {/* Why MAT */}
       <Section tone="blue">
         <SectionHeading
@@ -210,7 +281,6 @@ export function Home() {
           ))}
         </Reveal>
       </Section>
-
       {/* Section previews */}
       <Section>
         <SectionHeading eyebrow="Explore the Tapovan" title="Life at MAT, section by section" />
@@ -241,7 +311,6 @@ export function Home() {
           ))}
         </Reveal>
       </Section>
-
       {/* Achievements strip */}
       <Section tone="pink">
         <SectionHeading
@@ -274,7 +343,6 @@ export function Home() {
           </Button>
         </div>
       </Section>
-
       {/* Gallery preview — 3 photos + a clear "view all" tile */}
       <Section>
         <SectionHeading eyebrow="Gallery" title="Glimpses of the tapovan" />
@@ -313,7 +381,6 @@ export function Home() {
           </RevealItem>
         </Reveal>
       </Section>
-
       {/* Testimonials */}
       <Section tone="surface">
         <SectionHeading
@@ -325,12 +392,10 @@ export function Home() {
           <TestimonialCarousel items={testimonials.items} />
         </div>
       </Section>
-
       <CTABanner />
     </>
   )
 }
-
 // local variant for the about image
 const fadeRightWrap = {
   hidden: { opacity: 0, x: -30 },

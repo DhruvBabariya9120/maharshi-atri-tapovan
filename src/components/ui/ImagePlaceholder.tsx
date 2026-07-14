@@ -4,10 +4,10 @@ import { Icon } from '../../lib/icons'
 type Ratio = 'video' | 'square' | 'portrait' | 'wide' | 'auto'
 
 const ratios: Record<Ratio, string> = {
-  video: 'aspect-video',
-  square: 'aspect-square',
+  video: 'aspect-[9/7]',
+  square: 'aspect-[8/8]',
   portrait: 'aspect-[3/4]',
-  wide: 'aspect-[16/7]',
+  wide: 'aspect-[16/9]',
   auto: '',
 }
 
