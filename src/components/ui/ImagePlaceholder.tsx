@@ -22,6 +22,7 @@ export function ImagePlaceholder({
   className = '',
   src,
   alt,
+  fit = 'cover',
 }: {
   label?: string
   icon?: string
@@ -29,6 +30,7 @@ export function ImagePlaceholder({
   className?: string
   src?: string
   alt?: string
+  fit?: 'cover' | 'contain'
 }) {
   if (src) {
     return (
@@ -40,7 +42,7 @@ export function ImagePlaceholder({
           alt={alt ?? label ?? ''}
           loading="lazy"
           decoding="async"
-          className="h-full w-full object-cover"
+          className={`h-full w-full ${fit === 'contain' ? 'object-contain' : 'object-cover'}`}
         />
       </div>
     )

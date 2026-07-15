@@ -129,7 +129,7 @@ export function About() {
           className="mx-auto mt-12 grid max-w-4xl gap-8 rounded-3xl border border-border bg-card p-8 shadow-card sm:grid-cols-[200px_1fr] sm:p-10"
         >
           <div className="mx-auto w-full max-w-[200px]">
-            <ImagePlaceholder label={about.chairman.name} icon="GraduationCap" ratio="square" />
+            <ImagePlaceholder src="/bharat-bhai-malik.jpeg" alt={about.chairman.name} label={about.chairman.name} icon="GraduationCap" ratio="portrait" fit="cover" />
           </div>
           <div>
             <Quote className="h-9 w-9 text-accent" aria-hidden="true" />
