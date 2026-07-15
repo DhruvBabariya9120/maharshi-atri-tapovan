@@ -75,7 +75,7 @@ src/
 | Route | Hero + sections |
 |---|---|
 | `/` (Home) | Hero: headline "Where a Boy Becomes a Balanced Man", sub-headline, CTAs (Admission Enquiry → /admissions, Explore Campus Life → /campus-life). Stats strip (2003 serving since / Primary+Std 4–10 / 100% SSC last 3yr / Top 3 in Gujarat SSC 2026 / 50+ activities). About teaser. Why-MAT feature grid. Academics + Campus Life + Hostel previews. Achievements strip. Gallery preview. Testimonials carousel. Admission CTA banner. GSEB-medium correction badge. |
-| `/about` | Hero. About the School intro. "The Meaning Behind Our Name". Vision. Mission (6-point list). Message. "From the Chairman's Desk" quote card (Shri Bharatbhai B. Thummar, chairman.jpg placeholder). |
+| `/about` | Hero. About the School intro. "The Meaning Behind Our Name". Vision. Mission (6-point list). Message. "From the Chairman's Desk" quote card (Shri Bharatbhai K. Thummar, chairman.jpg placeholder). |
 | `/academics` | Hero. Board / Medium / Classes / Study model / Assessment info cards. Weekly Test System. Board Results (100% SSC 3yr, top 3 in 2026). Facilities grid (8: Smart Digital Classrooms, Playground, Prayer Hall, Library, Computer Lab, Science Lab, Skill Development, Environment). |
 | `/campus-life` | Hero (50+ activities intro). Tabbed/sectioned: Spirituality & Discipline; Sports & Physical Training (20+ item icon grid); Culture, Arts & Expression; Life Skills & Personal Growth. |
 | `/hostel` | Hero ("A Second Home"). Intro. Facilities grid (8: airy rooms, bed & locker, organic food, clean water, washing areas, full CCTV, daily sanitation, peaceful campus). "A Day at the Tapovan" timeline (timetable; sample rows marked TODO). |

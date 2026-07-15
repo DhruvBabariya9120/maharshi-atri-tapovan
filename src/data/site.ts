@@ -71,7 +71,7 @@ export const about = {
   message:
     'Marks open doors, but character keeps them open. At Maharshi Atri Tapovan we believe a child needs both — the knowledge to succeed in the modern world and the sanskar to remain grounded within it. Give us your son for these growing years, and we will return to you a disciplined, skilled and self-reliant young man.',
   chairman: {
-    name: 'Shri Bharatbhai B. Thummar',
+    name: 'Shri Bharatbhai K. Thummar',
     role: 'Chairman, Maharshi Atri Tapovan',
     photo: TODO, // chairman.jpg
     quote:
