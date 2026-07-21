@@ -10,7 +10,7 @@ export function Gallery() {
         crumb="Gallery"
         eyebrow="Glimpses of the Tapovan"
         title="A campus that comes alive every day"
-        subtitle="Annual functions, cultural performances, sports, yoga, classrooms and excursions — filter by category to explore."
+        subtitle="Annual functions, cultural performances, sports, yoga, classrooms, campus, hostel life and excursions — filter by category to explore."
       />
 
       <Section>

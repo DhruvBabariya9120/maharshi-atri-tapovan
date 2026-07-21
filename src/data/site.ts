@@ -308,6 +308,8 @@ export const galleryCategories = [
   { key: 'sports', label: 'Sports & Martial Arts', icon: 'Trophy' },
   { key: 'yoga', label: 'Yoga & Prayer', icon: 'Flower2' },
   { key: 'academics', label: 'Classrooms & Labs', icon: 'BookOpen' },
+  { key: 'campus', label: 'Campus & Facilities', icon: 'Building2' },
+  { key: 'hostel', label: 'Hostel Life', icon: 'BedDouble' },
   { key: 'excursions', label: 'Trips & Excursions', icon: 'MapPin' },
 ]
 
@@ -359,6 +361,22 @@ export const galleryItems: GalleryItem[] = [
   // Classrooms & Labs
   { id: 'academics-1', category: 'academics', src: '/library.jpg', alt: 'Students reading at tables in the school library', icon: 'BookOpen' },
   { id: 'academics-2', category: 'academics', src: '/science-lab.jpg', alt: 'Students carrying out an experiment in the science laboratory', icon: 'FlaskConical' },
+  { id: 'academics-3', category: 'academics', src: '/hostel.png', alt: 'Students in MAT uniform attending a smart-class lesson in a modern classroom', icon: 'MonitorSmartphone' },
+  { id: 'academics-4', category: 'academics', src: '/hostel-6.png', alt: 'A bright, airy classroom with wooden benches and a whiteboard', icon: 'BookOpen' },
+  { id: 'academics-5', category: 'academics', src: '/hostel-3.png', alt: 'School corridor lined with classrooms, plants and motivational boards', icon: 'BookOpen' },
+
+  // Campus & Facilities
+  { id: 'campus-1', category: 'campus', src: '/campus-1.png', alt: 'Aerial view of the green campus lawn, tree-lined walkways and children’s play area', icon: 'Building2' },
+  { id: 'campus-2', category: 'campus', src: '/campus-2.png', alt: 'Aerial view of the paved central courtyard and outdoor sports courts', icon: 'Building2' },
+  { id: 'campus-3', category: 'campus', src: '/campus-4.png', alt: 'The central courtyard and gardens lit up in the evening', icon: 'Building2' },
+  { id: 'campus-4', category: 'campus', src: '/campus-3.png', alt: 'Open-air terrace hall with greenery views on all sides', icon: 'Building2' },
+  { id: 'campus-5', category: 'campus', src: '/office-1.png', alt: 'The school office and reception area for parents and visitors', icon: 'Building2' },
+
+  // Hostel Life
+  { id: 'hostel-1', category: 'hostel', src: '/hostel-1.png', alt: 'Hostel dormitory with individual beds, personal lockers and luggage shelves', icon: 'BedDouble' },
+  { id: 'hostel-2', category: 'hostel', src: '/hostel-4.png', alt: 'Boys studying quietly in the hostel study room', icon: 'BedDouble' },
+  { id: 'hostel-3', category: 'hostel', src: '/hostel-2.png', alt: 'The hostel’s large, airy pillared hall used for meals and gatherings', icon: 'Utensils' },
+  { id: 'hostel-4', category: 'hostel', src: '/hostel-5.png', alt: 'Hostel room with rows of platform beds with built-in storage', icon: 'BedDouble' },
 
   // Trips & Excursions
   { id: 'excursions-1', category: 'excursions', src: '/trip-manali.jpg', alt: 'A student group photographed on a snow-covered mountain excursion', icon: 'MapPin' },
@@ -378,7 +396,12 @@ export const photos = {
   cultureDance: { src: '/function-22.jpg', alt: 'Students performing a folk dance in costume' },
   pyramid: { src: '/function-8.jpg', alt: 'Students forming a human pyramid on stage' },
   award: { src: '/function-12.jpg', alt: 'A student receiving an award from the chief guest' },
-  campus: { src: '/karate.jpg', alt: 'The Maharshi Atri Tapovan campus building with students on the ground' },
+  campus: { src: '/campus-1.png', alt: 'Aerial view of the green Maharshi Atri Tapovan campus with lawns, walkways and play area' },
+  smartClass: { src: '/hostel.png', alt: 'Students in MAT uniform attending a smart-class lesson' },
+  hostelRoom: { src: '/hostel-1.png', alt: 'Hostel dormitory with individual beds and personal lockers' },
+  hostelStudy: { src: '/hostel-4.png', alt: 'Boys studying quietly in the hostel study room' },
+  hostelHall: { src: '/hostel-2.png', alt: 'The hostel’s large, airy hall used for meals and gatherings' },
+  office: { src: '/office-1.png', alt: 'The school office and reception area' },
   trip: { src: '/trip-manali.jpg', alt: 'Students on a mountain excursion' },
   visit: { src: '/educational-visit.jpg', alt: 'Students on an educational visit' },
 } as const

@@ -1,13 +1,14 @@
 import { motion, useMotionValue, useReducedMotion, useSpring } from 'framer-motion'
 import { Section } from '../components/ui/Section'
 import { SectionHeading } from '../components/ui/SectionHeading'
-import { Reveal } from '../components/ui/Reveal'
+import { Reveal, RevealItem } from '../components/ui/Reveal'
 import { DayTimeline } from '../components/ui/DayTimeline'
+import { ImagePlaceholder } from '../components/ui/ImagePlaceholder'
 import { PageHero } from '../components/layout/PageHero'
 import { CTABanner } from '../components/sections/CTABanner'
 import { Icon } from '../lib/icons'
 import { fadeUp } from '../lib/motion'
-import { hostel } from '../data/site'
+import { hostel, photos } from '../data/site'
 
 /** Card that tilts in 3D toward the cursor, with the icon lifting off the surface. */
 function TiltCard({ facility }: { facility: (typeof hostel.facilities)[number] }) {
@@ -75,6 +76,26 @@ export function Hostel() {
           {hostel.facilities.map((f) => (
             <TiltCard key={f.title} facility={f} />
           ))}
+        </Reveal>
+      </Section>
+
+      {/* Inside the hostel — real photos of rooms, study and dining */}
+      <Section tone="surface">
+        <SectionHeading
+          eyebrow="Inside the Hostel"
+          title="See where your son will live"
+          subtitle="Clean dormitories with personal beds and lockers, quiet study rooms and a spacious dining hall."
+        />
+        <Reveal className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" gap={0.1}>
+          <RevealItem>
+            <ImagePlaceholder src={photos.hostelRoom.src} alt={photos.hostelRoom.alt} ratio="video" />
+          </RevealItem>
+          <RevealItem>
+            <ImagePlaceholder src={photos.hostelStudy.src} alt={photos.hostelStudy.alt} ratio="video" />
+          </RevealItem>
+          <RevealItem>
+            <ImagePlaceholder src={photos.hostelHall.src} alt={photos.hostelHall.alt} ratio="video" />
+          </RevealItem>
         </Reveal>
       </Section>
 

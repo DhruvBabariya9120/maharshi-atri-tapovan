@@ -203,7 +203,10 @@ export function Academics() {
           title="Hands-on, every day"
           subtitle="From library reading to live experiments — learning at MAT goes well beyond the textbook."
         />
-        <Reveal className="mt-12 grid gap-6 sm:grid-cols-2" gap={0.1}>
+        <Reveal className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" gap={0.1}>
+          <RevealItem>
+            <ImagePlaceholder src={photos.smartClass.src} alt={photos.smartClass.alt} ratio="video" />
+          </RevealItem>
           <RevealItem>
             <ImagePlaceholder src={photos.library.src} alt={photos.library.alt} ratio="video" />
           </RevealItem>
