@@ -360,17 +360,20 @@ export const galleryItems: GalleryItem[] = [
 
   // Classrooms & Labs
   { id: 'academics-1', category: 'academics', src: '/library.png', alt: 'Students reading at tables in the school library', icon: 'BookOpen' },
-  { id: 'academics-2', category: 'academics', src: '/science-lab.jpg', alt: 'Students carrying out an experiment in the science laboratory', icon: 'FlaskConical' },
-  { id: 'academics-3', category: 'academics', src: '/hostel.png', alt: 'Students in MAT uniform attending a smart-class lesson in a modern classroom', icon: 'MonitorSmartphone' },
-  { id: 'academics-4', category: 'academics', src: '/hostel-6.png', alt: 'A bright, airy classroom with wooden benches and a whiteboard', icon: 'BookOpen' },
-  { id: 'academics-5', category: 'academics', src: '/hostel-3.png', alt: 'School corridor lined with classrooms, plants and motivational boards', icon: 'BookOpen' },
+  { id: 'academics-2', category: 'academics', src: '/Science-lab.png', alt: 'Students carrying out an experiment in the science laboratory', icon: 'FlaskConical' },
+  { id: 'academics-3', category: 'academics', src: '/computer-lab.png', alt: 'Students learning digital skills in the computer laboratory', icon: 'Laptop' },
+  { id: 'academics-4', category: 'academics', src: '/hostel.png', alt: 'Students in MAT uniform attending a smart-class lesson in a modern classroom', icon: 'MonitorSmartphone' },
+  { id: 'academics-5', category: 'academics', src: '/hostel-6.png', alt: 'A bright, airy classroom with wooden benches and a whiteboard', icon: 'BookOpen' },
+  { id: 'academics-6', category: 'academics', src: '/hostel-3.png', alt: 'School corridor lined with classrooms, plants and motivational boards', icon: 'BookOpen' },
 
   // Campus & Facilities
   { id: 'campus-1', category: 'campus', src: '/campus-1.png', alt: 'Aerial view of the green campus lawn, tree-lined walkways and children’s play area', icon: 'Building2' },
   { id: 'campus-2', category: 'campus', src: '/campus-2.png', alt: 'Aerial view of the paved central courtyard and outdoor sports courts', icon: 'Building2' },
   { id: 'campus-3', category: 'campus', src: '/campus-4.png', alt: 'The central courtyard and gardens lit up in the evening', icon: 'Building2' },
   { id: 'campus-4', category: 'campus', src: '/campus-3.png', alt: 'Open-air terrace hall with greenery views on all sides', icon: 'Building2' },
-  { id: 'campus-5', category: 'campus', src: '/office-1.png', alt: 'The school office and reception area for parents and visitors', icon: 'Building2' },
+  { id: 'campus-5', category: 'campus', src: '/campus-6.png', alt: 'A vibrant view of the MAT campus grounds and facilities', icon: 'Building2' },
+  { id: 'campus-6', category: 'campus', src: '/Campus-5.png', alt: 'The school office and reception area for parents and visitors', icon: 'Building2' },
+  { id: 'campus-7', category: 'campus', src: '/Campus-7.png', alt: 'A scenic view of the campus with open grounds and greenery', icon: 'Building2' },
 
   // Hostel Life
   { id: 'hostel-1', category: 'hostel', src: '/hostel-1.png', alt: 'Hostel dormitory with individual beds, personal lockers and luggage shelves', icon: 'BedDouble' },
@@ -388,7 +391,7 @@ export const galleryItems: GalleryItem[] = [
 /** Named photos reused across pages (hero, teasers, section headers). */
 export const photos = {
   library: { src: '/library.png', alt: 'Students reading in the school library' },
-  scienceLab: { src: '/science-lab.jpg', alt: 'Students at work in the science laboratory' },
+  scienceLab: { src: '/Science-lab.png', alt: 'Students at work in the science laboratory' },
   yoga: { src: '/yoga-suryanamaskar.jpg', alt: 'Students performing Suryanamaskar on the ground' },
   karate: { src: '/karate.png', alt: 'Students practising karate in front of the school building' },
   ringJump: { src: '/burning-ring-jump.png', alt: 'A student leaping through a burning ring' },
@@ -396,12 +399,12 @@ export const photos = {
   cultureDance: { src: '/function-22.jpg', alt: 'Students performing a folk dance in costume' },
   pyramid: { src: '/function-8.jpg', alt: 'Students forming a human pyramid on stage' },
   award: { src: '/function-12.jpg', alt: 'A student receiving an award from the chief guest' },
-  campus: { src: '/campus-1.png', alt: 'Aerial view of the green Maharshi Atri Tapovan campus with lawns, walkways and play area' },
-  smartClass: { src: '/hostel.png', alt: 'Students in MAT uniform attending a smart-class lesson' },
+  campus: { src: '/campus-6.png', alt: 'Aerial view of the green Maharshi Atri Tapovan campus with lawns, walkways and play area' },
+  smartClass: { src: '/computer-lab.png', alt: 'Students learning digital skills in the computer lab' },
   hostelRoom: { src: '/hostel-1.png', alt: 'Hostel dormitory with individual beds and personal lockers' },
   hostelStudy: { src: '/hostel-4.png', alt: 'Boys studying quietly in the hostel study room' },
   hostelHall: { src: '/hostel-2.png', alt: 'The hostel’s large, airy hall used for meals and gatherings' },
-  office: { src: '/office-1.png', alt: 'The school office and reception area' },
+  office: { src: '/Campus-5.png', alt: 'The school office and reception area' },
   trip: { src: '/trip-manali.jpg', alt: 'Students on a mountain excursion' },
   visit: { src: '/educational-visit.jpg', alt: 'Students on an educational visit' },
 } as const
