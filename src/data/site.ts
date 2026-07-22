@@ -399,7 +399,7 @@ export const photos = {
   cultureDance: { src: '/function-22.jpg', alt: 'Students performing a folk dance in costume' },
   pyramid: { src: '/function-8.jpg', alt: 'Students forming a human pyramid on stage' },
   award: { src: '/function-12.jpg', alt: 'A student receiving an award from the chief guest' },
-  campus: { src: '/campus-6.png', alt: 'Aerial view of the green Maharshi Atri Tapovan campus with lawns, walkways and play area' },
+  campus: { src: '/campus-1.png', alt: 'Aerial view of the green Maharshi Atri Tapovan campus with lawns, walkways and play area' },
   smartClass: { src: '/computer-lab.png', alt: 'Students learning digital skills in the computer lab' },
   hostelRoom: { src: '/hostel-1.png', alt: 'Hostel dormitory with individual beds and personal lockers' },
   hostelStudy: { src: '/hostel-4.png', alt: 'Boys studying quietly in the hostel study room' },
