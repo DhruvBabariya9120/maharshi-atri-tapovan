@@ -347,8 +347,8 @@ export const galleryItems: GalleryItem[] = [
   { id: 'culture-13', category: 'culture', src: '/function-20.jpg', alt: 'Expressive mime-style stage performance', icon: 'Drama' },
 
   // Sports & Martial Arts
-  { id: 'sports-1', category: 'sports', src: '/karate.jpg', alt: 'Students practising karate in formation on the school ground', icon: 'Trophy' },
-  { id: 'sports-2', category: 'sports', src: '/burning-ring-jump.jpg', alt: 'A student leaping through a burning ring at an evening event', icon: 'Trophy' },
+  { id: 'sports-1', category: 'sports', src: '/karate.png', alt: 'Students practising karate in formation on the school ground', icon: 'Trophy' },
+  { id: 'sports-2', category: 'sports', src: '/burning-ring-jump.png', alt: 'A student leaping through a burning ring at an evening event', icon: 'Trophy' },
   { id: 'sports-3', category: 'sports', src: '/function-8.jpg', alt: 'Students forming a human pyramid on stage', icon: 'Trophy' },
   { id: 'sports-4', category: 'sports', src: '/function-14.jpg', alt: 'A large human-pyramid formation during a performance', icon: 'Trophy' },
   { id: 'sports-5', category: 'sports', src: '/function-6.jpg', alt: 'Taekwondo demonstration on stage', icon: 'Trophy' },
@@ -359,7 +359,7 @@ export const galleryItems: GalleryItem[] = [
   { id: 'yoga-1', category: 'yoga', src: '/yoga-suryanamaskar.jpg', alt: 'Students performing Suryanamaskar in a V-formation on the ground', icon: 'Flower2' },
 
   // Classrooms & Labs
-  { id: 'academics-1', category: 'academics', src: '/library.jpg', alt: 'Students reading at tables in the school library', icon: 'BookOpen' },
+  { id: 'academics-1', category: 'academics', src: '/library.png', alt: 'Students reading at tables in the school library', icon: 'BookOpen' },
   { id: 'academics-2', category: 'academics', src: '/science-lab.jpg', alt: 'Students carrying out an experiment in the science laboratory', icon: 'FlaskConical' },
   { id: 'academics-3', category: 'academics', src: '/hostel.png', alt: 'Students in MAT uniform attending a smart-class lesson in a modern classroom', icon: 'MonitorSmartphone' },
   { id: 'academics-4', category: 'academics', src: '/hostel-6.png', alt: 'A bright, airy classroom with wooden benches and a whiteboard', icon: 'BookOpen' },
@@ -387,11 +387,11 @@ export const galleryItems: GalleryItem[] = [
 
 /** Named photos reused across pages (hero, teasers, section headers). */
 export const photos = {
-  library: { src: '/library.jpg', alt: 'Students reading in the school library' },
+  library: { src: '/library.png', alt: 'Students reading in the school library' },
   scienceLab: { src: '/science-lab.jpg', alt: 'Students at work in the science laboratory' },
   yoga: { src: '/yoga-suryanamaskar.jpg', alt: 'Students performing Suryanamaskar on the ground' },
-  karate: { src: '/karate.jpg', alt: 'Students practising karate in front of the school building' },
-  ringJump: { src: '/burning-ring-jump.jpg', alt: 'A student leaping through a burning ring' },
+  karate: { src: '/karate.png', alt: 'Students practising karate in front of the school building' },
+  ringJump: { src: '/burning-ring-jump.png', alt: 'A student leaping through a burning ring' },
   annualDrama: { src: '/drama-lav-kush.jpg', alt: 'Students performing a costume drama on the Annual Function stage' },
   cultureDance: { src: '/function-22.jpg', alt: 'Students performing a folk dance in costume' },
   pyramid: { src: '/function-8.jpg', alt: 'Students forming a human pyramid on stage' },
