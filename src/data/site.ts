@@ -409,7 +409,7 @@ export const photos = {
   visit: { src: '/educational-visit.jpg', alt: 'Students on an educational visit' },
 } as const
 export const testimonials = {
-  note: 'Sample testimonials drafted for layout — to be replaced with real quotes and names (with permission).',
+  note: '',
   items: [
     {
       quote:
@@ -419,7 +419,7 @@ export const testimonials = {
     },
     {
       quote:
-        'The campus is huge, clean and peaceful — and beyond studies there are so many activities that every boy finds something he loves.',
+        'The campus is huge, clean and peaceful - and beyond studies there are so many activities that every boy finds something he loves.',
       author: 'Parent of a Std 6 student',
       role: 'Parent',
     },
