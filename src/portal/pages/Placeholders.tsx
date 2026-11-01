@@ -4,11 +4,9 @@ import { useSession } from '../auth/session'
 
 // ponytail: stand-ins until each phase lands; delete a route's entry here when its screen ships.
 const phaseFor: [RegExp, string][] = [
-  [/^\/admin\/(setup|account)/, 'P1 · Sign-in and setup'],
-  [/^\/admin\/(students|promote|users)/, 'P2 · Students and people'],
-  [/^\/admin\/(fees|payment-requests)|^\/me\/fees/, 'P3 · Fees and payments'],
+  [/^\/admin\/(fees|payment-requests|setup\/payment)|^\/me\/fees/, 'P3 · Fees and payments'],
   [/^\/admin\/exams|^\/me\/results/, 'P4 · Exams and results'],
-  [/^\/admin\/activity|^\/me\/account/, 'P5 · Dashboard, activity, polish'],
+  [/^\/admin\/activity/, 'P5 · Dashboard, activity, polish'],
 ]
 
 export function ComingSoon() {

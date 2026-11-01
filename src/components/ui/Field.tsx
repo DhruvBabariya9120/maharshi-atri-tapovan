@@ -62,7 +62,11 @@ export const Select = forwardRef<
   HTMLSelectElement,
   SelectHTMLAttributes<HTMLSelectElement> & { error?: string; children: ReactNode }
 >(({ error, className = '', children, ...props }, ref) => (
-  <select ref={ref} className={`${control} ${fieldBorder(error)} ${className}`} {...props}>
+  <select
+    ref={ref}
+    className={`select-chevron ${control} ${fieldBorder(error)} ${className}`}
+    {...props}
+  >
     {children}
   </select>
 ))

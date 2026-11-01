@@ -23,7 +23,7 @@ const PASSWORD = 'password123'
 const SESSION_KEY = 'mock-session-user'
 const failures = new Map<string, number>()
 
-const error = (statusCode: number, message: string | string[], extra?: object) =>
+export const error = (statusCode: number, message: string | string[], extra?: object) =>
   HttpResponse.json(
     {
       statusCode,

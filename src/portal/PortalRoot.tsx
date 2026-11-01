@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import { ApiError } from './api/client'
 import { SessionProvider } from './auth/session'
+import './portal.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

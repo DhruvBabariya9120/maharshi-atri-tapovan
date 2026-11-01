@@ -1,0 +1,136 @@
+/* Portal-only styles, loaded with PortalRoot so the public site never downloads them.
+   Mirrors the shared table look from the mockups (tables.css). */
+
+.dt {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 12px 32px -20px rgba(15, 23, 42, 0.25);
+}
+.dt-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #eef2f7;
+}
+.dt-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--heading);
+}
+.dt-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--tint-blue);
+  color: var(--brand);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+table.tbl {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: 14px;
+}
+table.tbl thead th {
+  background: #f5f8ff;
+  color: #475569;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 14px 20px;
+  border-bottom: 1px solid #dbe4f5;
+  white-space: nowrap;
+  text-align: left;
+}
+table.tbl tbody td {
+  padding: 14px 20px;
+  border-bottom: 1px solid #eef2f7;
+  vertical-align: middle;
+  color: var(--body);
+}
+table.tbl th:first-child,
+table.tbl td:first-child {
+  padding-left: 24px;
+}
+table.tbl th:last-child,
+table.tbl td:last-child {
+  padding-right: 24px;
+}
+table.tbl tbody tr:nth-child(even) td {
+  background: #fbfcff;
+}
+table.tbl tbody tr:hover td {
+  background: #eef4ff;
+}
+table.tbl tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Row action buttons */
+.ra {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.ra > button,
+.ra > a {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+}
+.ra > button:hover,
+.ra > a:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  background: var(--tint-blue-soft);
+}
+.ra > button.danger:hover {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: #fef2f2;
+}
+.ra > button:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Native <dialog> */
+dialog.pdlg {
+  /* Tailwind's preflight zeroes margins; auto margins are what centre a modal dialog. */
+  margin: auto;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  border: 0;
+  padding: 0;
+  border-radius: 20px;
+  width: min(480px, calc(100vw - 32px));
+  box-shadow: 0 24px 64px -24px rgba(15, 23, 42, 0.45);
+}
+dialog.pdlg::backdrop {
+  background: rgba(15, 23, 42, 0.4);
+}

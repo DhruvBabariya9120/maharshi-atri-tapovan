@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, redirect, RouterProvider } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import { Home } from './pages/Home'
@@ -77,6 +77,75 @@ const router = createBrowserRouter([
               import('./portal/pages/Placeholders').then((m) => ({ Component: m.Welcome })),
           },
           {
+            path: 'students',
+            lazy: () =>
+              import('./portal/pages/students/StudentList').then((m) => ({
+                Component: m.StudentList,
+              })),
+          },
+          {
+            path: 'students/new',
+            lazy: () =>
+              import('./portal/pages/students/StudentForm').then((m) => ({
+                Component: m.StudentForm,
+              })),
+          },
+          {
+            path: 'students/:id',
+            lazy: () =>
+              import('./portal/pages/students/StudentProfile').then((m) => ({
+                Component: m.StudentProfile,
+              })),
+          },
+          {
+            path: 'students/:id/edit',
+            lazy: () =>
+              import('./portal/pages/students/StudentForm').then((m) => ({
+                Component: m.StudentForm,
+              })),
+          },
+          {
+            path: 'promote',
+            lazy: () =>
+              import('./portal/pages/students/Promote').then((m) => ({ Component: m.Promote })),
+          },
+          {
+            path: 'users',
+            lazy: () => import('./portal/pages/Users').then((m) => ({ Component: m.Users })),
+          },
+          { path: 'setup', loader: () => redirect('/admin/setup/years') },
+          {
+            path: 'setup/years',
+            lazy: () =>
+              import('./portal/pages/setup/AcademicYears').then((m) => ({
+                Component: m.AcademicYears,
+              })),
+          },
+          {
+            path: 'setup/classes',
+            lazy: () =>
+              import('./portal/pages/setup/Classes').then((m) => ({ Component: m.Classes })),
+          },
+          {
+            path: 'setup/subjects',
+            lazy: () =>
+              import('./portal/pages/setup/Subjects').then((m) => ({ Component: m.Subjects })),
+          },
+          {
+            path: 'setup/grades',
+            lazy: () =>
+              import('./portal/pages/setup/GradeScales').then((m) => ({
+                Component: m.GradeScales,
+              })),
+          },
+          {
+            path: 'account',
+            lazy: () =>
+              import('./portal/pages/AccountSettings').then((m) => ({
+                Component: m.AccountSettings,
+              })),
+          },
+          {
             path: '*',
             lazy: () =>
               import('./portal/pages/Placeholders').then((m) => ({ Component: m.ComingSoon })),
@@ -91,6 +160,13 @@ const router = createBrowserRouter([
             index: true,
             lazy: () =>
               import('./portal/pages/Placeholders').then((m) => ({ Component: m.Welcome })),
+          },
+          {
+            path: 'account',
+            lazy: () =>
+              import('./portal/pages/AccountSettings').then((m) => ({
+                Component: m.AccountSettings,
+              })),
           },
           {
             path: '*',

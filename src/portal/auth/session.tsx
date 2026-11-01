@@ -19,6 +19,8 @@ type Session = {
   /** Store the result of login or accept-invite. */
   signIn: (auth: AuthResponse) => void
   signOut: () => Promise<void>
+  /** Keep the header in step after the user edits their own name. */
+  renameUser: (fullName: string) => void
 }
 
 const SessionContext = createContext<Session | null>(null)
@@ -57,6 +59,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         setUser(auth.user)
         setStatus('authenticated')
       },
+      renameUser: (fullName) => setUser((u) => (u ? { ...u, fullName } : u)),
       signOut: async () => {
         await api('/auth/logout', { method: 'POST' }).catch(() => {})
         clear()
