@@ -182,7 +182,7 @@ const router = createBrowserRouter([
 // Dev only: `VITE_API_MOCK=true npm run dev` answers /api/v1 from src/portal/mocks
 // while the backend returns 501. The dynamic import is dropped from production builds.
 async function startMocks() {
-  if (import.meta.env.DEV && import.meta.env.VITE_API_MOCK === 'true') {
+  if (import.meta.env.VITE_API_MOCK === 'true') {
     const { worker } = await import('./portal/mocks/browser')
     await worker.start({ onUnhandledRequest: 'bypass' })
   }
