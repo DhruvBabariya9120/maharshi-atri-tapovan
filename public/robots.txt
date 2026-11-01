@@ -1,4 +1,10 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /me
+Disallow: /login
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /accept-invite
 
 Sitemap: https://atritapovan.com/sitemap.xml

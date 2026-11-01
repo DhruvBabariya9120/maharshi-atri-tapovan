@@ -45,10 +45,77 @@ const router = createBrowserRouter([
       },
     ],
   },
+  // Admin panel and student portal. Everything here is lazy, so the public site's
+  // bundle doesn't grow; PortalRoot brings the query client and the session.
+  {
+    lazy: () => import('./portal/PortalRoot').then((m) => ({ Component: m.PortalRoot })),
+    children: [
+      {
+        path: 'login',
+        lazy: () => import('./portal/auth/AuthPages').then((m) => ({ Component: m.Login })),
+      },
+      {
+        path: 'forgot-password',
+        lazy: () =>
+          import('./portal/auth/AuthPages').then((m) => ({ Component: m.ForgotPassword })),
+      },
+      {
+        path: 'reset-password',
+        lazy: () => import('./portal/auth/AuthPages').then((m) => ({ Component: m.ResetPassword })),
+      },
+      {
+        path: 'accept-invite',
+        lazy: () => import('./portal/auth/AuthPages').then((m) => ({ Component: m.AcceptInvite })),
+      },
+      {
+        path: 'admin',
+        lazy: () => import('./portal/areas').then((m) => ({ Component: m.AdminArea })),
+        children: [
+          {
+            index: true,
+            lazy: () =>
+              import('./portal/pages/Placeholders').then((m) => ({ Component: m.Welcome })),
+          },
+          {
+            path: '*',
+            lazy: () =>
+              import('./portal/pages/Placeholders').then((m) => ({ Component: m.ComingSoon })),
+          },
+        ],
+      },
+      {
+        path: 'me',
+        lazy: () => import('./portal/areas').then((m) => ({ Component: m.StudentArea })),
+        children: [
+          {
+            index: true,
+            lazy: () =>
+              import('./portal/pages/Placeholders').then((m) => ({ Component: m.Welcome })),
+          },
+          {
+            path: '*',
+            lazy: () =>
+              import('./portal/pages/Placeholders').then((m) => ({ Component: m.ComingSoon })),
+          },
+        ],
+      },
+    ],
+  },
 ])
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>,
+// Dev only: `VITE_API_MOCK=true npm run dev` answers /api/v1 from src/portal/mocks
+// while the backend returns 501. The dynamic import is dropped from production builds.
+async function startMocks() {
+  if (import.meta.env.DEV && import.meta.env.VITE_API_MOCK === 'true') {
+    const { worker } = await import('./portal/mocks/browser')
+    await worker.start({ onUnhandledRequest: 'bypass' })
+  }
+}
+
+startMocks().then(() =>
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <RouterProvider router={router} />
+    </StrictMode>
+  )
 )

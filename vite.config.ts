@@ -40,6 +40,11 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss(), enquiryApi(env)],
     server: {
       allowedHosts: ['*.ngrok-free.app'],
+      // The NestJS API lives in its own repo. Same-origin proxy keeps the
+      // SameSite=Strict refresh cookie working in dev, like the Vercel rewrite in prod.
+      proxy: {
+        '/api/v1': { target: env.API_URL || 'http://localhost:3000', changeOrigin: true },
+      },
     },
   }
 })
