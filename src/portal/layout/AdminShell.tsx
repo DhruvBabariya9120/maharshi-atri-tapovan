@@ -108,7 +108,7 @@ export function AdminShell() {
 
   return (
     <div className="bg-surface flex min-h-screen">
-      <aside className="border-border bg-card sticky top-0 hidden h-screen w-62 shrink-0 overflow-y-auto border-r lg:block">
+      <aside className="border-border bg-card sticky top-0 hidden h-screen w-62 shrink-0 overflow-y-auto border-r lg:block print:hidden">
         <Sidebar />
       </aside>
 
@@ -140,7 +140,7 @@ export function AdminShell() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-border bg-card sticky top-0 z-30 flex items-center gap-3 border-b px-4 py-3 sm:px-8">
+        <header className="border-border bg-card sticky top-0 z-30 flex items-center gap-3 border-b px-4 py-3 sm:px-8 print:hidden">
           <button
             type="button"
             aria-label="Open menu"

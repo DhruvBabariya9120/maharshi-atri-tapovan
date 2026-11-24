@@ -31,9 +31,9 @@ export function AuthLayout({ kicker, headline, lead, footnote, title, children }
           </div>
         </div>
         <div className="flex max-w-md flex-col gap-4">
-          <h1 className="font-display text-3xl leading-tight font-bold text-white lg:text-4xl">
+          <p className="font-display text-3xl leading-tight font-bold text-white lg:text-4xl">
             {headline}
-          </h1>
+          </p>
           <p className="text-base leading-relaxed text-blue-100">{lead}</p>
         </div>
         {footnote && <p className="text-sm text-blue-300">{footnote}</p>}
@@ -48,7 +48,7 @@ export function AuthLayout({ kicker, headline, lead, footnote, title, children }
 export function AuthHeading({ title, sub }: { title: string; sub?: ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <h2 className="font-display text-heading text-[28px] font-semibold">{title}</h2>
+      <h1 className="font-display text-heading text-[28px] font-semibold">{title}</h1>
       {sub && <p className="text-muted text-sm">{sub}</p>}
     </div>
   )

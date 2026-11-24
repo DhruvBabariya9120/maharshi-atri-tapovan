@@ -6,7 +6,7 @@ import { classes, years } from './setup'
 // Dev-only P2 data: students, enrollments, documents, uploads, admins and invitations.
 
 type Student = Schemas['StudentDto']
-const id = () => crypto.randomUUID()
+import { mockId as id } from './ids'
 const now = () => new Date().toISOString()
 const noContent = () => new HttpResponse(null, { status: 204 })
 const body = async <T>(r: Request) => (await r.json()) as T
@@ -35,8 +35,8 @@ const seed: [string, string, Student['gender'], string, string, string][] = [
   ['Nisha', 'Gajera', 'FEMALE', 'Std 7', 'Ashok Gajera', 'ashok.g@example.com'],
 ]
 
-const students: Student[] = []
-const enrollments: Schemas['EnrollmentDto'][] = []
+export const students: Student[] = []
+export const enrollments: Schemas['EnrollmentDto'][] = []
 
 seed.forEach(([firstName, lastName, gender, std, guardianName, guardianEmail], i) => {
   const s: Student = {
@@ -175,8 +175,8 @@ const documents: Schemas['StudentDocumentDto'][] = [
 ]
 
 // Stand-in for object storage: presigned PUTs land here, signed GETs become blob URLs.
-const storage = new Map<string, Blob>()
-const photoKeys = new Map<string, string>()
+export const storage = new Map<string, Blob>()
+export const photoKeys = new Map<string, string>()
 const docKeys = new Map<string, string>()
 
 const admins: Schemas['UserDto'][] = [
@@ -213,7 +213,7 @@ const admins: Schemas['UserDto'][] = [
 ]
 
 const hoursFromNow = (h: number) => new Date(Date.now() + h * 3600_000).toISOString()
-const invitations: Schemas['InvitationDto'][] = [
+export const invitations: Schemas['InvitationDto'][] = [
   {
     id: id(),
     email: students[10].guardianEmail,

@@ -7,6 +7,7 @@ import { Camera, ExternalLink, FileText, Loader2, Mail, Pencil, Trash2, Upload }
 import { Input, Select } from '../../../components/ui/Field'
 import { api, type Schemas } from '../../api/client'
 import { checkFile, uploadFile, useClasses, useYears } from '../../api/lookups'
+import { StudentFees } from '../fees/StudentFees'
 import { Btn, ConfirmDialog, Dialog, Pill, TableState, errorText, fmtDate } from '../../ui'
 import {
   BOARDING,
@@ -193,11 +194,10 @@ export function StudentProfile() {
       {tab === 'overview' && <Overview s={s} onArchive={() => setDeleting(true)} />}
       {tab === 'enrollment' && <Enrollments studentId={s.id} />}
       {tab === 'documents' && <Documents studentId={s.id} />}
-      {(tab === 'fees' || tab === 'results') && (
+      {tab === 'fees' && <StudentFees studentId={s.id} />}
+      {tab === 'results' && (
         <div className="dt text-muted p-10 text-center text-sm">
-          {tab === 'fees'
-            ? 'Fees for this student arrive in phase 3.'
-            : 'Exam results arrive in phase 4.'}
+          Marks for each exam are on the exam’s results page (Exams → an exam → View results).
         </div>
       )}
 
@@ -263,7 +263,7 @@ function Overview({ s, onArchive }: { s: Student; onArchive: () => void }) {
         <button
           type="button"
           onClick={onArchive}
-          className="mt-2 inline-flex items-center gap-1.5 self-start text-[13px] font-medium text-red-700 hover:underline"
+          className="mt-2 inline-flex min-h-6 items-center gap-1.5 self-start text-[13px] font-medium text-red-700 hover:underline"
         >
           <Trash2 className="h-3.5 w-3.5" aria-hidden /> Archive student
         </button>

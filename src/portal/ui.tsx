@@ -45,6 +45,7 @@ const btn = {
     'bg-brand text-white shadow-[0_8px_20px_-8px_rgba(29,78,216,0.6)] hover:bg-brand-dark border border-transparent',
   outline: 'border border-border bg-card text-heading hover:border-brand hover:text-brand',
   danger: 'bg-red-600 text-white hover:bg-red-700 border border-transparent',
+  accent: 'bg-accent text-white hover:bg-accent-strong border border-transparent',
 }
 
 export function Btn({

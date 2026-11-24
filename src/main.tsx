@@ -74,7 +74,7 @@ const router = createBrowserRouter([
           {
             index: true,
             lazy: () =>
-              import('./portal/pages/Placeholders').then((m) => ({ Component: m.Welcome })),
+              import('./portal/pages/Dashboard').then((m) => ({ Component: m.Dashboard })),
           },
           {
             path: 'students',
@@ -146,9 +146,81 @@ const router = createBrowserRouter([
               })),
           },
           {
+            path: 'fees',
+            lazy: () =>
+              import('./portal/pages/fees/FeeOverview').then((m) => ({ Component: m.FeeOverview })),
+          },
+          {
+            path: 'fees/assign',
+            lazy: () =>
+              import('./portal/pages/fees/AssignFees').then((m) => ({ Component: m.AssignFees })),
+          },
+          {
+            path: 'students/:id/receipts/:paymentId',
+            lazy: () =>
+              import('./portal/pages/fees/Receipt').then((m) => ({ Component: m.AdminReceipt })),
+          },
+          {
+            path: 'payment-requests',
+            lazy: () =>
+              import('./portal/pages/fees/PaymentRequests').then((m) => ({
+                Component: m.PaymentRequests,
+              })),
+          },
+          {
+            path: 'payment-requests/:id',
+            lazy: () =>
+              import('./portal/pages/fees/PaymentReview').then((m) => ({
+                Component: m.PaymentReview,
+              })),
+          },
+          {
+            path: 'exams',
+            lazy: () =>
+              import('./portal/pages/exams/ExamList').then((m) => ({ Component: m.ExamList })),
+          },
+          {
+            path: 'exams/new',
+            lazy: () =>
+              import('./portal/pages/exams/ExamForm').then((m) => ({ Component: m.ExamForm })),
+          },
+          {
+            path: 'exams/:id',
+            lazy: () =>
+              import('./portal/pages/exams/ExamDetail').then((m) => ({ Component: m.ExamDetail })),
+          },
+          {
+            path: 'exams/:id/edit',
+            lazy: () =>
+              import('./portal/pages/exams/ExamForm').then((m) => ({ Component: m.ExamForm })),
+          },
+          {
+            path: 'exams/:id/marks/:paperId',
+            lazy: () =>
+              import('./portal/pages/exams/MarksEntry').then((m) => ({ Component: m.MarksEntry })),
+          },
+          {
+            path: 'exams/:id/results',
+            lazy: () =>
+              import('./portal/pages/exams/ExamResults').then((m) => ({
+                Component: m.ExamResults,
+              })),
+          },
+          {
+            path: 'activity',
+            lazy: () => import('./portal/pages/Activity').then((m) => ({ Component: m.Activity })),
+          },
+          {
+            path: 'setup/payment',
+            lazy: () =>
+              import('./portal/pages/setup/PaymentSettings').then((m) => ({
+                Component: m.PaymentSettings,
+              })),
+          },
+          {
             path: '*',
             lazy: () =>
-              import('./portal/pages/Placeholders').then((m) => ({ Component: m.ComingSoon })),
+              import('./portal/pages/Placeholders').then((m) => ({ Component: m.PortalNotFound })),
           },
         ],
       },
@@ -159,7 +231,7 @@ const router = createBrowserRouter([
           {
             index: true,
             lazy: () =>
-              import('./portal/pages/Placeholders').then((m) => ({ Component: m.Welcome })),
+              import('./portal/pages/me/MyProfile').then((m) => ({ Component: m.MyProfile })),
           },
           {
             path: 'account',
@@ -169,9 +241,27 @@ const router = createBrowserRouter([
               })),
           },
           {
+            path: 'fees',
+            lazy: () => import('./portal/pages/me/MyFees').then((m) => ({ Component: m.MyFees })),
+          },
+          {
+            path: 'fees/:feeId/pay',
+            lazy: () => import('./portal/pages/me/PayFee').then((m) => ({ Component: m.PayFee })),
+          },
+          {
+            path: 'results',
+            lazy: () =>
+              import('./portal/pages/me/MyResults').then((m) => ({ Component: m.MyResults })),
+          },
+          {
+            path: 'receipts/:paymentId',
+            lazy: () =>
+              import('./portal/pages/fees/Receipt').then((m) => ({ Component: m.MyReceipt })),
+          },
+          {
             path: '*',
             lazy: () =>
-              import('./portal/pages/Placeholders').then((m) => ({ Component: m.ComingSoon })),
+              import('./portal/pages/Placeholders').then((m) => ({ Component: m.PortalNotFound })),
           },
         ],
       },

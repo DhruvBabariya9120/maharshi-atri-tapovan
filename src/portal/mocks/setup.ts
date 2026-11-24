@@ -5,7 +5,7 @@ import { error } from './handlers'
 // Dev-only P1 data: academic years, classes, subjects, grade scales, /me and sessions.
 // Kept in memory, so a page reload starts over.
 
-const id = () => crypto.randomUUID()
+import { mockId as id } from './ids'
 const page = <T>(items: T[]) => ({ items, page: 1, limit: 100, total: items.length })
 const noContent = () => new HttpResponse(null, { status: 204 })
 const body = async <T>(r: Request) => (await r.json()) as T
@@ -26,7 +26,7 @@ const classesWithStudents = new Set(
   classes.filter((c) => c.academicYearId === years[2].id).map((c) => c.id)
 )
 
-const subjects: Schemas['SubjectDto'][] = [
+export const subjects: Schemas['SubjectDto'][] = [
   ['Gujarati', 'GUJ'],
   ['English', 'ENG'],
   ['Hindi', 'HIN'],
@@ -46,7 +46,7 @@ const band = (grade: string, minPercent: number, maxPercent: number, isPass = tr
   remark: null,
   isPass,
 })
-const scales: Schemas['GradeScaleDto'][] = [
+export const scales: Schemas['GradeScaleDto'][] = [
   {
     id: id(),
     name: 'GSEB standard',

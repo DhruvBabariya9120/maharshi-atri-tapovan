@@ -687,6 +687,26 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/v1/students/{id}/cash-payments': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Record a cash payment for a fee that was never billed
+     * @description For cash taken outside the billing flow, e.g. washing or stationery. Creates a fee of `feeType` and `title` with total = `amount`, plus a CASH payment for the same amount, in one transaction. The fee is PAID.
+     */
+    post: operations['fees_createCashPayment']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/fees/{id}': {
     parameters: {
       query?: never
@@ -886,6 +906,26 @@ export interface paths {
     }
     /** Own fees (STUDENT) */
     get: operations['meFees_fees']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/me/payments': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Own payment history (STUDENT)
+     * @description Non-voided payments, newest first.
+     */
+    get: operations['meFees_payments']
     put?: never
     post?: never
     delete?: never
@@ -2008,13 +2048,30 @@ export interface components {
         [key: string]: string
       }
     }
-    StudentFeeDto: {
+    AdminFeePaymentLineDto: {
+      /** Format: uuid */
+      id: string
+      /** @example 2026-07-01 */
+      paidOn: string
+      /** @example 5000.00 */
+      amount: string
+      /** @enum {string} */
+      method: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE'
+      /** @example RCPT-2026-000123 */
+      receiptNo: string
+      /** Format: date-time */
+      voidedAt: string | null
+      voidReason: string | null
+    }
+    AdminStudentFeeDto: {
       /** Format: uuid */
       id: string
       /** Format: uuid */
       studentId: string
       /** Format: uuid */
       academicYearId: string
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
       /** @example Tuition Term 1 */
       title: string
       /** @example 45000.00 */
@@ -2037,61 +2094,53 @@ export interface components {
       createdAt: string
       /** Format: date-time */
       updatedAt: string
+      /** @description All payments including voided, oldest first. */
+      payments: components['schemas']['AdminFeePaymentLineDto'][]
     }
     PaginatedStudentFeesDto: {
-      items: components['schemas']['StudentFeeDto'][]
+      items: components['schemas']['AdminStudentFeeDto'][]
       page: number
       limit: number
       total: number
     }
-    StudentFeeSummaryDto: {
+    FeeTypeTotalsDto: {
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
       /** @example 45000.00 */
       totalAmount: string
       /** @example 15000.00 */
       paidAmount: string
       /** @example 30000.00 */
       remainingAmount: string
-      items: components['schemas']['StudentFeeDto'][]
     }
-    CreateFeeItemDto: {
-      /** Format: uuid */
-      studentId: string
+    AdminStudentFeeSummaryDto: {
+      /** @example 45000.00 */
+      totalAmount: string
+      /** @example 15000.00 */
+      paidAmount: string
+      /** @example 30000.00 */
+      remainingAmount: string
+      /** @description Subtotals per fee type that has at least one fee. */
+      byType: components['schemas']['FeeTypeTotalsDto'][]
+      items: components['schemas']['AdminStudentFeeDto'][]
+    }
+    CreateCashPaymentDto: {
       /** Format: uuid */
       academicYearId: string
-      /** @example Tuition Term 1 */
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+      /** @example Washing Term 1 */
       title: string
       /**
-       * @description Amount in rupees, > 0, max 2 decimals, no leading zeros.
+       * @description Cash received, must be > 0. Sets the fee total and the payment.
        * @example 45000.00
        */
-      totalAmount: string
+      amount: string
       /**
        * @description ISO date.
-       * @example 2026-07-31
+       * @example 2026-07-01
        */
-      dueDate?: string
-      notes?: string
-    }
-    CreateFeesDto: {
-      /** @description 1-500 items. All-or-nothing: one invalid item rejects the whole request with per-item errors (e.g. items.3.field). */
-      items: components['schemas']['CreateFeeItemDto'][]
-    }
-    FeesResultDto: {
-      items: components['schemas']['StudentFeeDto'][]
-    }
-    UpdateFeeDto: {
-      /** @example Tuition Term 1 */
-      title?: string
-      /**
-       * @description Amount in rupees, > 0, max 2 decimals, no leading zeros.
-       * @example 45000.00
-       */
-      totalAmount?: string
-      /**
-       * @description ISO date.
-       * @example 2026-07-31
-       */
-      dueDate?: string
+      paidOn: string
       notes?: string
     }
     FeePaymentDto: {
@@ -2117,6 +2166,55 @@ export interface components {
       /** Format: date-time */
       createdAt: string
     }
+    CashPaymentResultDto: {
+      fee: components['schemas']['AdminStudentFeeDto']
+      payment: components['schemas']['FeePaymentDto']
+    }
+    CreateFeeItemDto: {
+      /** Format: uuid */
+      studentId: string
+      /** Format: uuid */
+      academicYearId: string
+      /** @example Tuition Term 1 */
+      title: string
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+      /**
+       * @description Amount in rupees, > 0, max 2 decimals, no leading zeros.
+       * @example 45000.00
+       */
+      totalAmount: string
+      /**
+       * @description ISO date.
+       * @example 2026-07-31
+       */
+      dueDate?: string
+      notes?: string
+    }
+    CreateFeesDto: {
+      /** @description 1-500 items. All-or-nothing: one invalid item rejects the whole request with per-item errors (e.g. items.3.field). */
+      items: components['schemas']['CreateFeeItemDto'][]
+    }
+    FeesResultDto: {
+      items: components['schemas']['AdminStudentFeeDto'][]
+    }
+    UpdateFeeDto: {
+      /** @example Tuition Term 1 */
+      title?: string
+      /** @enum {string} */
+      feeType?: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+      /**
+       * @description Amount in rupees, > 0, max 2 decimals, no leading zeros.
+       * @example 45000.00
+       */
+      totalAmount?: string
+      /**
+       * @description ISO date.
+       * @example 2026-07-31
+       */
+      dueDate?: string
+      notes?: string
+    }
     CreatePaymentItemDto: {
       /** Format: uuid */
       studentFeeId: string
@@ -2132,7 +2230,10 @@ export interface components {
       paidOn: string
       /** @enum {string} */
       method: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE'
-      /** @example CHQ-004512 */
+      /**
+       * @description Optional for CASH. Expected for UPI, BANK_TRANSFER and CHEQUE.
+       * @example CHQ-004512
+       */
       referenceNo?: string
       notes?: string
     }
@@ -2150,6 +2251,8 @@ export interface components {
     CreateClassFeeDto: {
       /** @example Tuition Term 1 */
       title: string
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
       /**
        * @description Amount in rupees, > 0, max 2 decimals, no leading zeros.
        * @example 45000.00
@@ -2183,6 +2286,8 @@ export interface components {
       studentFeeId: string
       /** @example Tuition Term 1 */
       feeTitle: string
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
       /** @example 2500.50 */
       amount: string
       /** @enum {string} */
@@ -2224,6 +2329,8 @@ export interface components {
       studentFeeId: string
       /** @example Tuition Term 1 */
       feeTitle: string
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
       /** @example 2500.50 */
       amount: string
       /** @enum {string} */
@@ -2287,6 +2394,81 @@ export interface components {
       /** @example Quote the admission number in the remark. */
       instructions?: string
     }
+    FeePaymentLineDto: {
+      /** Format: uuid */
+      id: string
+      /** @example 2026-07-01 */
+      paidOn: string
+      /** @example 5000.00 */
+      amount: string
+      /** @enum {string} */
+      method: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE'
+      /** @example RCPT-2026-000123 */
+      receiptNo: string
+    }
+    StudentFeeDto: {
+      /** Format: uuid */
+      id: string
+      /** Format: uuid */
+      studentId: string
+      /** Format: uuid */
+      academicYearId: string
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+      /** @example Tuition Term 1 */
+      title: string
+      /** @example 45000.00 */
+      totalAmount: string
+      /**
+       * @description Sum of non-voided payments.
+       * @example 15000.00
+       */
+      paidAmount: string
+      /** @example 30000.00 */
+      remainingAmount: string
+      /** @enum {string} */
+      status: 'PAID' | 'PARTIAL' | 'PENDING'
+      /** @description Past dueDate and not fully paid. */
+      isOverdue: boolean
+      /** @example 2026-07-31 */
+      dueDate: string | null
+      notes: string | null
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      updatedAt: string
+      /** @description Non-voided payments, oldest first. */
+      payments: components['schemas']['FeePaymentLineDto'][]
+    }
+    StudentFeeSummaryDto: {
+      /** @example 45000.00 */
+      totalAmount: string
+      /** @example 15000.00 */
+      paidAmount: string
+      /** @example 30000.00 */
+      remainingAmount: string
+      /** @description Subtotals per fee type that has at least one fee. */
+      byType: components['schemas']['FeeTypeTotalsDto'][]
+      items: components['schemas']['StudentFeeDto'][]
+    }
+    MyPaymentDto: {
+      /** Format: uuid */
+      id: string
+      /** @example 2026-07-01 */
+      paidOn: string
+      /** @example 5000.00 */
+      amount: string
+      /** @enum {string} */
+      method: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE'
+      /** @example RCPT-2026-000123 */
+      receiptNo: string
+      /** Format: uuid */
+      feeId: string
+      /** @example Tuition Term 1 */
+      feeTitle: string
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+    }
     CreatePaymentSubmissionDto: {
       /**
        * @description Amount paid, must be > 0. Part payments are allowed; the service rejects amounts above the remaining balance.
@@ -2319,6 +2501,8 @@ export interface components {
       studentFeeId: string
       /** @example Tuition Term 1 */
       feeTitle: string
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
       /** @example 2500.50 */
       amount: string
       /** @enum {string} */
@@ -2748,6 +2932,18 @@ export interface components {
       /** @example 20 */
       alumni: number
     }
+    FeeTypeCollectionDto: {
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+      /** @example 1500000.00 */
+      totalAmount: string
+      /** @example 1200000.00 */
+      collectedAmount: string
+      /** @example 300000.00 */
+      pendingAmount: string
+      /** @example 50000.00 */
+      overdueAmount: string
+    }
     FeeTotalsDto: {
       /** @example 4500000.00 */
       totalAmount: string
@@ -2759,6 +2955,16 @@ export interface components {
       overdueAmount: string
       /** @example 14 */
       overdueCount: number
+      /** @description Per fee type that has at least one fee in the year. */
+      byType: components['schemas']['FeeTypeCollectionDto'][]
+    }
+    FeesByStandardTypeDto: {
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+      /** @example 150000.00 */
+      billedAmount: string
+      /** @example 120000.00 */
+      collectedAmount: string
     }
     FeesByStandardDto: {
       /** @example 5th */
@@ -2767,6 +2973,7 @@ export interface components {
       billedAmount: string
       /** @example 320000.00 */
       collectedAmount: string
+      byType: components['schemas']['FeesByStandardTypeDto'][]
     }
     AttentionDto: {
       /** @example 2 */
@@ -2785,6 +2992,8 @@ export interface components {
       studentName: string
       /** @example Term 1 Tuition */
       feeTitle: string
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
       /** @enum {string} */
       method: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE'
       /** @example 45000.00 */
@@ -5536,6 +5745,7 @@ export interface operations {
         status?: 'PAID' | 'PARTIAL' | 'PENDING'
         /** @description Only overdue fees. */
         overdue?: boolean
+        feeType?: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
         academicYearId?: string
         classId?: string
         /** @description Search by student name, admission number or fee title. */
@@ -5659,7 +5869,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['StudentFeeSummaryDto']
+          'application/json': components['schemas']['AdminStudentFeeSummaryDto']
         }
       }
       /** @description Missing or invalid access token */
@@ -5681,6 +5891,67 @@ export interface operations {
         }
       }
       /** @description Student not found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+    }
+  }
+  fees_createCashPayment: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateCashPaymentDto']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['CashPaymentResultDto']
+        }
+      }
+      /** @description Validation failed */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Missing or invalid access token */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Admin role required */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Student or academic year not found */
       404: {
         headers: {
           [name: string]: unknown
@@ -5767,7 +6038,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['StudentFeeDto']
+          'application/json': components['schemas']['AdminStudentFeeDto']
         }
       }
       /** @description Validation failed */
@@ -6393,6 +6664,55 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['StudentFeeSummaryDto']
+        }
+      }
+      /** @description Missing or invalid access token */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Student role required */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+    }
+  }
+  meFees_payments: {
+    parameters: {
+      query?: {
+        /** @description Defaults to all years. */
+        academicYearId?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['MyPaymentDto'][]
+        }
+      }
+      /** @description Invalid query */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
         }
       }
       /** @description Missing or invalid access token */

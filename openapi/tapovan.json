@@ -3583,6 +3583,23 @@
             }
           },
           {
+            "name": "feeType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "TUITION",
+                "HOSTEL",
+                "SCHOOL",
+                "ACTIVITY",
+                "WASHING",
+                "DRESS",
+                "STATIONERY"
+              ]
+            }
+          },
+          {
             "name": "academicYearId",
             "required": false,
             "in": "query",
@@ -3758,7 +3775,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StudentFeeSummaryDto"
+                  "$ref": "#/components/schemas/AdminStudentFeeSummaryDto"
                 }
               }
             }
@@ -3805,6 +3822,93 @@
         ]
       }
     },
+    "/api/v1/students/{id}/cash-payments": {
+      "post": {
+        "description": "For cash taken outside the billing flow, e.g. washing or stationery. Creates a fee of `feeType` and `title` with total = `amount`, plus a CASH payment for the same amount, in one transaction. The fee is PAID.",
+        "operationId": "fees_createCashPayment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCashPaymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashPaymentResultDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Student or academic year not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Record a cash payment for a fee that was never billed",
+        "tags": [
+          "fees"
+        ]
+      }
+    },
     "/api/v1/fees/{id}": {
       "patch": {
         "description": "Phase 3 rejects a totalAmount below the amount already paid (409).",
@@ -3835,7 +3939,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StudentFeeDto"
+                  "$ref": "#/components/schemas/AdminStudentFeeDto"
                 }
               }
             }
@@ -4817,6 +4921,78 @@
           }
         ],
         "summary": "Own fees (STUDENT)",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/v1/me/payments": {
+      "get": {
+        "description": "Non-voided payments, newest first.",
+        "operationId": "meFees_payments",
+        "parameters": [
+          {
+            "name": "academicYearId",
+            "required": false,
+            "in": "query",
+            "description": "Defaults to all years.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MyPaymentDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Student role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Own payment history (STUDENT)",
         "tags": [
           "me"
         ]
@@ -8736,7 +8912,55 @@
           "headers"
         ]
       },
-      "StudentFeeDto": {
+      "AdminFeePaymentLineDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "paidOn": {
+            "type": "string",
+            "example": "2026-07-01"
+          },
+          "amount": {
+            "type": "string",
+            "example": "5000.00"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "CASH",
+              "UPI",
+              "BANK_TRANSFER",
+              "CHEQUE"
+            ]
+          },
+          "receiptNo": {
+            "type": "string",
+            "example": "RCPT-2026-000123"
+          },
+          "voidedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "voidReason": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "paidOn",
+          "amount",
+          "method",
+          "receiptNo",
+          "voidedAt",
+          "voidReason"
+        ]
+      },
+      "AdminStudentFeeDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -8750,6 +8974,18 @@
           "academicYearId": {
             "type": "string",
             "format": "uuid"
+          },
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
           },
           "title": {
             "type": "string",
@@ -8796,12 +9032,20 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "payments": {
+            "description": "All payments including voided, oldest first.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminFeePaymentLineDto"
+            }
           }
         },
         "required": [
           "id",
           "studentId",
           "academicYearId",
+          "feeType",
           "title",
           "totalAmount",
           "paidAmount",
@@ -8811,7 +9055,8 @@
           "dueDate",
           "notes",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "payments"
         ]
       },
       "PaginatedStudentFeesDto": {
@@ -8820,7 +9065,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StudentFeeDto"
+              "$ref": "#/components/schemas/AdminStudentFeeDto"
             }
           },
           "page": {
@@ -8840,7 +9085,42 @@
           "total"
         ]
       },
-      "StudentFeeSummaryDto": {
+      "FeeTypeTotalsDto": {
+        "type": "object",
+        "properties": {
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
+          },
+          "totalAmount": {
+            "type": "string",
+            "example": "45000.00"
+          },
+          "paidAmount": {
+            "type": "string",
+            "example": "15000.00"
+          },
+          "remainingAmount": {
+            "type": "string",
+            "example": "30000.00"
+          }
+        },
+        "required": [
+          "feeType",
+          "totalAmount",
+          "paidAmount",
+          "remainingAmount"
+        ]
+      },
+      "AdminStudentFeeSummaryDto": {
         "type": "object",
         "properties": {
           "totalAmount": {
@@ -8855,10 +9135,17 @@
             "type": "string",
             "example": "30000.00"
           },
+          "byType": {
+            "description": "Subtotals per fee type that has at least one fee.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeeTypeTotalsDto"
+            }
+          },
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StudentFeeDto"
+              "$ref": "#/components/schemas/AdminStudentFeeDto"
             }
           }
         },
@@ -8866,33 +9153,42 @@
           "totalAmount",
           "paidAmount",
           "remainingAmount",
+          "byType",
           "items"
         ]
       },
-      "CreateFeeItemDto": {
+      "CreateCashPaymentDto": {
         "type": "object",
         "properties": {
-          "studentId": {
-            "type": "string",
-            "format": "uuid"
-          },
           "academicYearId": {
             "type": "string",
             "format": "uuid"
           },
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
+          },
           "title": {
             "type": "string",
-            "example": "Tuition Term 1"
+            "example": "Washing Term 1"
           },
-          "totalAmount": {
+          "amount": {
             "type": "string",
             "example": "45000.00",
             "pattern": "^(?!0+(\\.0+)?$)(0|[1-9]\\d{0,9})(\\.\\d{1,2})?$",
-            "description": "Amount in rupees, > 0, max 2 decimals, no leading zeros."
+            "description": "Cash received, must be > 0. Sets the fee total and the payment."
           },
-          "dueDate": {
+          "paidOn": {
             "type": "string",
-            "example": "2026-07-31",
+            "example": "2026-07-01",
             "description": "ISO date."
           },
           "notes": {
@@ -8900,65 +9196,12 @@
           }
         },
         "required": [
-          "studentId",
           "academicYearId",
+          "feeType",
           "title",
-          "totalAmount"
+          "amount",
+          "paidOn"
         ]
-      },
-      "CreateFeesDto": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "minItems": 1,
-            "maxItems": 500,
-            "description": "1-500 items. All-or-nothing: one invalid item rejects the whole request with per-item errors (e.g. items.3.field).",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreateFeeItemDto"
-            }
-          }
-        },
-        "required": [
-          "items"
-        ]
-      },
-      "FeesResultDto": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/StudentFeeDto"
-            }
-          }
-        },
-        "required": [
-          "items"
-        ]
-      },
-      "UpdateFeeDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "example": "Tuition Term 1"
-          },
-          "totalAmount": {
-            "type": "string",
-            "example": "45000.00",
-            "pattern": "^(?!0+(\\.0+)?$)(0|[1-9]\\d{0,9})(\\.\\d{1,2})?$",
-            "description": "Amount in rupees, > 0, max 2 decimals, no leading zeros."
-          },
-          "dueDate": {
-            "type": "string",
-            "example": "2026-07-31",
-            "description": "ISO date."
-          },
-          "notes": {
-            "type": "string"
-          }
-        }
       },
       "FeePaymentDto": {
         "type": "object",
@@ -9033,6 +9276,137 @@
           "createdAt"
         ]
       },
+      "CashPaymentResultDto": {
+        "type": "object",
+        "properties": {
+          "fee": {
+            "$ref": "#/components/schemas/AdminStudentFeeDto"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/FeePaymentDto"
+          }
+        },
+        "required": [
+          "fee",
+          "payment"
+        ]
+      },
+      "CreateFeeItemDto": {
+        "type": "object",
+        "properties": {
+          "studentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "academicYearId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "example": "Tuition Term 1"
+          },
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
+          },
+          "totalAmount": {
+            "type": "string",
+            "example": "45000.00",
+            "pattern": "^(?!0+(\\.0+)?$)(0|[1-9]\\d{0,9})(\\.\\d{1,2})?$",
+            "description": "Amount in rupees, > 0, max 2 decimals, no leading zeros."
+          },
+          "dueDate": {
+            "type": "string",
+            "example": "2026-07-31",
+            "description": "ISO date."
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "studentId",
+          "academicYearId",
+          "title",
+          "feeType",
+          "totalAmount"
+        ]
+      },
+      "CreateFeesDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "minItems": 1,
+            "maxItems": 500,
+            "description": "1-500 items. All-or-nothing: one invalid item rejects the whole request with per-item errors (e.g. items.3.field).",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateFeeItemDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "FeesResultDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminStudentFeeDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "UpdateFeeDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Tuition Term 1"
+          },
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
+          },
+          "totalAmount": {
+            "type": "string",
+            "example": "45000.00",
+            "pattern": "^(?!0+(\\.0+)?$)(0|[1-9]\\d{0,9})(\\.\\d{1,2})?$",
+            "description": "Amount in rupees, > 0, max 2 decimals, no leading zeros."
+          },
+          "dueDate": {
+            "type": "string",
+            "example": "2026-07-31",
+            "description": "ISO date."
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
       "CreatePaymentItemDto": {
         "type": "object",
         "properties": {
@@ -9062,7 +9436,8 @@
           },
           "referenceNo": {
             "type": "string",
-            "example": "CHQ-004512"
+            "example": "CHQ-004512",
+            "description": "Optional for CASH. Expected for UPI, BANK_TRANSFER and CHEQUE."
           },
           "notes": {
             "type": "string"
@@ -9125,6 +9500,18 @@
             "type": "string",
             "example": "Tuition Term 1"
           },
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
+          },
           "totalAmount": {
             "type": "string",
             "example": "45000.00",
@@ -9150,6 +9537,7 @@
         },
         "required": [
           "title",
+          "feeType",
           "totalAmount"
         ]
       },
@@ -9185,6 +9573,18 @@
           "feeTitle": {
             "type": "string",
             "example": "Tuition Term 1"
+          },
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
           },
           "amount": {
             "type": "string",
@@ -9253,6 +9653,7 @@
           "id",
           "studentFeeId",
           "feeTitle",
+          "feeType",
           "amount",
           "method",
           "referenceNo",
@@ -9308,6 +9709,18 @@
           "feeTitle": {
             "type": "string",
             "example": "Tuition Term 1"
+          },
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
           },
           "amount": {
             "type": "string",
@@ -9380,6 +9793,7 @@
           "id",
           "studentFeeId",
           "feeTitle",
+          "feeType",
           "amount",
           "method",
           "referenceNo",
@@ -9494,6 +9908,239 @@
           }
         }
       },
+      "FeePaymentLineDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "paidOn": {
+            "type": "string",
+            "example": "2026-07-01"
+          },
+          "amount": {
+            "type": "string",
+            "example": "5000.00"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "CASH",
+              "UPI",
+              "BANK_TRANSFER",
+              "CHEQUE"
+            ]
+          },
+          "receiptNo": {
+            "type": "string",
+            "example": "RCPT-2026-000123"
+          }
+        },
+        "required": [
+          "id",
+          "paidOn",
+          "amount",
+          "method",
+          "receiptNo"
+        ]
+      },
+      "StudentFeeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "academicYearId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "example": "Tuition Term 1"
+          },
+          "totalAmount": {
+            "type": "string",
+            "example": "45000.00"
+          },
+          "paidAmount": {
+            "type": "string",
+            "example": "15000.00",
+            "description": "Sum of non-voided payments."
+          },
+          "remainingAmount": {
+            "type": "string",
+            "example": "30000.00"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PAID",
+              "PARTIAL",
+              "PENDING"
+            ]
+          },
+          "isOverdue": {
+            "type": "boolean",
+            "description": "Past dueDate and not fully paid."
+          },
+          "dueDate": {
+            "type": "string",
+            "nullable": true,
+            "example": "2026-07-31"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "payments": {
+            "description": "Non-voided payments, oldest first.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeePaymentLineDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "studentId",
+          "academicYearId",
+          "feeType",
+          "title",
+          "totalAmount",
+          "paidAmount",
+          "remainingAmount",
+          "status",
+          "isOverdue",
+          "dueDate",
+          "notes",
+          "createdAt",
+          "updatedAt",
+          "payments"
+        ]
+      },
+      "StudentFeeSummaryDto": {
+        "type": "object",
+        "properties": {
+          "totalAmount": {
+            "type": "string",
+            "example": "45000.00"
+          },
+          "paidAmount": {
+            "type": "string",
+            "example": "15000.00"
+          },
+          "remainingAmount": {
+            "type": "string",
+            "example": "30000.00"
+          },
+          "byType": {
+            "description": "Subtotals per fee type that has at least one fee.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeeTypeTotalsDto"
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentFeeDto"
+            }
+          }
+        },
+        "required": [
+          "totalAmount",
+          "paidAmount",
+          "remainingAmount",
+          "byType",
+          "items"
+        ]
+      },
+      "MyPaymentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "paidOn": {
+            "type": "string",
+            "example": "2026-07-01"
+          },
+          "amount": {
+            "type": "string",
+            "example": "5000.00"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "CASH",
+              "UPI",
+              "BANK_TRANSFER",
+              "CHEQUE"
+            ]
+          },
+          "receiptNo": {
+            "type": "string",
+            "example": "RCPT-2026-000123"
+          },
+          "feeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "feeTitle": {
+            "type": "string",
+            "example": "Tuition Term 1"
+          },
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "paidOn",
+          "amount",
+          "method",
+          "receiptNo",
+          "feeId",
+          "feeTitle",
+          "feeType"
+        ]
+      },
       "CreatePaymentSubmissionDto": {
         "type": "object",
         "properties": {
@@ -9552,6 +10199,18 @@
             "type": "string",
             "example": "Tuition Term 1"
           },
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
+          },
           "amount": {
             "type": "string",
             "example": "2500.50"
@@ -9607,6 +10266,7 @@
           "id",
           "studentFeeId",
           "feeTitle",
+          "feeType",
           "amount",
           "method",
           "referenceNo",
@@ -10576,6 +11236,46 @@
           "alumni"
         ]
       },
+      "FeeTypeCollectionDto": {
+        "type": "object",
+        "properties": {
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
+          },
+          "totalAmount": {
+            "type": "string",
+            "example": "1500000.00"
+          },
+          "collectedAmount": {
+            "type": "string",
+            "example": "1200000.00"
+          },
+          "pendingAmount": {
+            "type": "string",
+            "example": "300000.00"
+          },
+          "overdueAmount": {
+            "type": "string",
+            "example": "50000.00"
+          }
+        },
+        "required": [
+          "feeType",
+          "totalAmount",
+          "collectedAmount",
+          "pendingAmount",
+          "overdueAmount"
+        ]
+      },
       "FeeTotalsDto": {
         "type": "object",
         "properties": {
@@ -10598,6 +11298,13 @@
           "overdueCount": {
             "type": "number",
             "example": 14
+          },
+          "byType": {
+            "description": "Per fee type that has at least one fee in the year.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeeTypeCollectionDto"
+            }
           }
         },
         "required": [
@@ -10605,7 +11312,38 @@
           "collectedAmount",
           "pendingAmount",
           "overdueAmount",
-          "overdueCount"
+          "overdueCount",
+          "byType"
+        ]
+      },
+      "FeesByStandardTypeDto": {
+        "type": "object",
+        "properties": {
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
+          },
+          "billedAmount": {
+            "type": "string",
+            "example": "150000.00"
+          },
+          "collectedAmount": {
+            "type": "string",
+            "example": "120000.00"
+          }
+        },
+        "required": [
+          "feeType",
+          "billedAmount",
+          "collectedAmount"
         ]
       },
       "FeesByStandardDto": {
@@ -10622,12 +11360,19 @@
           "collectedAmount": {
             "type": "string",
             "example": "320000.00"
+          },
+          "byType": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeesByStandardTypeDto"
+            }
           }
         },
         "required": [
           "standard",
           "billedAmount",
-          "collectedAmount"
+          "collectedAmount",
+          "byType"
         ]
       },
       "AttentionDto": {
@@ -10672,6 +11417,18 @@
             "type": "string",
             "example": "Term 1 Tuition"
           },
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
+          },
           "method": {
             "type": "string",
             "enum": [
@@ -10695,6 +11452,7 @@
           "receiptNo",
           "studentName",
           "feeTitle",
+          "feeType",
           "method",
           "amount",
           "paidOn"

@@ -22,7 +22,7 @@ export function PortalShell() {
 
   return (
     <div className="bg-surface flex min-h-screen flex-col pb-16 sm:pb-0">
-      <header className="border-border bg-card sticky top-0 z-30 border-b">
+      <header className="border-border bg-card sticky top-0 z-30 border-b print:hidden">
         <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-4 py-3 sm:px-8">
           <div className="flex items-center gap-3">
             <img src={logo} alt="" className="h-10 w-10 rounded-full" />
@@ -71,7 +71,7 @@ export function PortalShell() {
 
       <nav
         aria-label="Portal"
-        className="border-border bg-card fixed inset-x-0 bottom-0 z-30 flex border-t sm:hidden"
+        className="border-border bg-card fixed inset-x-0 bottom-0 z-30 flex border-t sm:hidden print:hidden"
       >
         {tabs.map(({ to, short, icon: Icon, end }) => (
           <NavLink
