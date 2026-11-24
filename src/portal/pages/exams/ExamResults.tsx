@@ -68,7 +68,7 @@ export function ExamResults() {
           <ExamStatus exam={e} />
         </span>
         <p className="text-muted text-sm">
-          {e.publishedAt
+          {e.status === 'PUBLISHED' && e.publishedAt
             ? `Published ${fmtDate(e.publishedAt)}${e.publishCount > 1 ? `, ${e.publishCount} times` : ''}`
             : 'Not published. Students can’t see these results.'}
         </p>

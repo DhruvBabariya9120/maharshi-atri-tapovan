@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -82,6 +82,9 @@ function Body({ exam }: { exam?: Detail }) {
       : [blankPaper()]
   )
   const hasMarks = !!exam?.subjects.some((s) => s.enteredCount > 0)
+  // Existing papers keep their exam-subject id as `key`.
+  const withMarks = new Set(exam?.subjects.filter((s) => s.enteredCount > 0).map((s) => s.id))
+  const createdId = useRef<string | null>(null)
 
   const setPaper = (key: string, patch: Partial<Paper>) =>
     setPapers((ps) => ps.map((p) => (p.key === key ? { ...p, ...patch } : p)))
@@ -90,7 +93,8 @@ function Body({ exam }: { exam?: Detail }) {
     const pass = Number(p.passMarks)
     if (!p.subjectId) return 'Pick a subject'
     if (!Number.isFinite(max) || max <= 0) return 'Max marks must be above 0'
-    if (!Number.isFinite(pass) || pass < 0) return 'Enter pass marks'
+    // Number('') is 0, so a blank field has to be caught on its own.
+    if (p.passMarks.trim() === '' || !Number.isFinite(pass) || pass < 0) return 'Enter pass marks'
     if (pass > max) return "Pass marks can't be more than max"
     if (startDate && p.examDate && p.examDate < startDate)
       return 'Paper date is before the exam starts'
@@ -107,12 +111,16 @@ function Body({ exam }: { exam?: Detail }) {
         startDate: startDate || undefined,
         endDate: endDate || undefined,
       }
-      const saved = exam
-        ? await api<Detail>(`/exams/${exam.id}`, { method: 'PATCH', body: details })
+      // Two requests: if the papers PUT fails after the POST worked, a retry must update
+      // that exam instead of creating a second one.
+      const existingId = exam?.id ?? createdId.current
+      const saved = existingId
+        ? await api<Detail>(`/exams/${existingId}`, { method: 'PATCH', body: details })
         : await api<Detail>('/exams', {
             method: 'POST',
             body: { ...details, academicYearId: yearId, classId },
           })
+      createdId.current = saved.id
       return api<Detail>(`/exams/${saved.id}/subjects`, {
         method: 'PUT',
         body: {
@@ -127,6 +135,7 @@ function Body({ exam }: { exam?: Detail }) {
     },
     onSuccess: (d) => {
       qc.invalidateQueries({ queryKey: ['exams'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success(exam ? 'Exam saved' : `Created ${d.name}. Enter marks for each paper next.`)
       navigate(`/admin/exams/${d.id}`)
     },
@@ -343,8 +352,20 @@ function Body({ exam }: { exam?: Detail }) {
                       <div className="ra">
                         <button
                           type="button"
-                          className="danger"
-                          aria-label="Remove paper"
+                          className="danger disabled:cursor-not-allowed disabled:opacity-40"
+                          // The API refuses to drop a paper that has marks (409), after the
+                          // exam details were already saved. Block it here instead.
+                          disabled={withMarks.has(p.key)}
+                          aria-label={
+                            withMarks.has(p.key)
+                              ? 'This paper has marks and can’t be removed'
+                              : 'Remove paper'
+                          }
+                          title={
+                            withMarks.has(p.key)
+                              ? 'This paper has marks and can’t be removed'
+                              : undefined
+                          }
                           onClick={() => setPapers((ps) => ps.filter((x) => x.key !== p.key))}
                         >
                           <X className="h-4 w-4" />

@@ -15,6 +15,7 @@ import {
   MethodChip,
   ProgressBar,
   inr,
+  localToday,
   paidPercent,
   type FeeType,
   type Method,
@@ -23,7 +24,7 @@ import {
 type Fee = Schemas['AdminStudentFeeDto']
 type Line = Schemas['AdminFeePaymentLineDto']
 const MONEY = /^\d{1,9}(\.\d{1,2})?$/
-const today = () => new Date().toISOString().slice(0, 10)
+const today = localToday
 
 export function StudentFees({ studentId, readOnly }: { studentId: string; readOnly?: boolean }) {
   const qc = useQueryClient()
@@ -645,7 +646,7 @@ function CashDialog({
           </Btn>
           <Btn
             busy={save.isPending}
-            disabled={!amount || !!amountError || !yearId || paidOn > today()}
+            disabled={!amount || !!amountError || !yearId || !paidOn || paidOn > today()}
             onClick={() => save.mutate()}
           >
             Save and create receipt

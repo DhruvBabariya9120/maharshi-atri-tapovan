@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Search } from 'lucide-react'
 import { FieldWrap, Input, Select } from '../../../components/ui/Field'
@@ -15,6 +15,7 @@ const MONEY = /^\d{1,9}(\.\d{1,2})?$/
 
 export function AssignFees() {
   const navigate = useNavigate()
+  const qc = useQueryClient()
   const [params] = useSearchParams()
   const years = useYears()
   const yearId = years.current?.id ?? ''
@@ -71,6 +72,12 @@ export function AssignFees() {
       return { kind: 'student' as const }
     },
     onSuccess: (r) => {
+      // New bills change the fee list, the totals and the student's own fees tab.
+      qc.invalidateQueries({ queryKey: ['fees'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({
+        predicate: (q) => q.queryKey[0] === 'students' && q.queryKey[2] === 'fees',
+      })
       if (r.kind === 'class') {
         toast.success(
           `Billed ${r.created} ${r.created === 1 ? 'student' : 'students'} in ${classes.nameOf(classId)}` +

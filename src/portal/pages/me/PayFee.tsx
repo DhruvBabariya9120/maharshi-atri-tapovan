@@ -8,11 +8,11 @@ import { FieldWrap, Input } from '../../../components/ui/Field'
 import { api, type Schemas } from '../../api/client'
 import { checkFile, uploadFile } from '../../api/lookups'
 import { Btn, errorText, fmtDate } from '../../ui'
-import { FeeTypeChip, inr } from '../fees/common'
+import { FeeTypeChip, inr, localToday } from '../fees/common'
 
 type SubMethod = Schemas['CreatePaymentSubmissionDto']['method']
 const MONEY = /^\d{1,9}(\.\d{1,2})?$/
-const today = () => new Date().toISOString().slice(0, 10)
+const today = localToday
 
 function CopyRow({ label, value }: { label: string; value: string | null }) {
   const [copied, setCopied] = useState(false)
@@ -78,7 +78,8 @@ export function PayFee() {
   const fee = fees.data?.items.find((f) => f.id === feeId)
 
   const [method, setMethod] = useState<SubMethod>('UPI')
-  const [amount, setAmount] = useState('')
+  // null = untouched, so the field starts at the remaining balance but can still be emptied
+  const [amount, setAmount] = useState<string | null>(null)
   const [paidOn, setPaidOn] = useState(today())
   const [utr, setUtr] = useState('')
   const [note, setNote] = useState('')
@@ -91,7 +92,7 @@ export function PayFee() {
       return api<Schemas['MyPaymentSubmissionDto']>(`/me/fees/${feeId}/payment-submissions`, {
         method: 'POST',
         body: {
-          amount: Number(amount || fee!.remainingAmount).toFixed(2),
+          amount: Number(amount ?? fee!.remainingAmount).toFixed(2),
           method,
           referenceNo: utr.trim(),
           paidOn,
@@ -129,7 +130,7 @@ export function PayFee() {
     )
   const p = settings.data
   const admissionNo = me.data?.student?.admissionNo
-  const amt = amount || Number(fee.remainingAmount).toFixed(2)
+  const amt = amount ?? Number(fee.remainingAmount).toFixed(2)
   const amountError =
     !MONEY.test(amt) || Number(amt) <= 0
       ? 'Enter the amount you paid'
@@ -249,7 +250,7 @@ export function PayFee() {
           className="flex min-w-0 flex-[1_1_420px]"
           onSubmit={(e) => {
             e.preventDefault()
-            if (ready) submit.mutate()
+            if (ready && !submit.isPending) submit.mutate()
           }}
         >
           <Step n={2} title="Tell us you paid">

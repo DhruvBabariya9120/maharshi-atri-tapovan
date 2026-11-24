@@ -33,15 +33,21 @@ export function MarksEntry() {
         {errorText(exam.error ?? sheet.error, "Couldn't load the marks.")}
       </p>
     )
-  // key: start from the saved marks again whenever another paper opens or a save comes back
-  return <Grid key={`${paperId}-${sheet.dataUpdatedAt}`} exam={exam.data} sheet={sheet.data} />
+  // key: start from the saved marks whenever another paper opens. Not keyed on dataUpdatedAt:
+  // a background refetch (e.g. on window focus) would remount the grid and drop typed marks.
+  // After a save, Grid moves its own "original" forward.
+  return <Grid key={paperId} exam={exam.data} sheet={sheet.data} />
 }
 
 function Grid({ exam, sheet }: { exam: Schemas['ExamDetailDto']; sheet: Sheet }) {
   const qc = useQueryClient()
   const paper = sheet.examSubject
-  const rows = [...sheet.rows].sort(
-    (a, b) => (a.rollNo ?? 9999) - (b.rollNo ?? 9999) || a.name.localeCompare(b.name)
+  // Frozen at mount like `original`: a background refetch that adds a newly enrolled student
+  // must not render a row that has no cell yet. A new student shows after reopening the paper.
+  const [rows] = useState(() =>
+    [...sheet.rows].sort(
+      (a, b) => (a.rollNo ?? 9999) - (b.rollNo ?? 9999) || a.name.localeCompare(b.name)
+    )
   )
   // The saved state. Updated as soon as a save succeeds, so leaving the page right away
   // doesn't warn about "unsaved" marks while the sheet is still refetching.
@@ -56,8 +62,10 @@ function Grid({ exam, sheet }: { exam: Schemas['ExamDetailDto']; sheet: Sheet })
   const [cells, setCells] = useState<Record<string, Cell>>(original)
   const inputs = useRef<(HTMLInputElement | null)[]>([])
 
-  const errorOf = (c: Cell) => {
-    if (c.absent || c.marks === '') return null
+  const errorOf = (c: Cell, o: Cell) => {
+    if (c.absent) return null
+    // The API has no "clear this mark"; a blank cell that was saved would quietly come back.
+    if (c.marks === '') return o.absent || o.marks !== '' ? 'Enter marks or tick Absent' : null
     const n = Number(c.marks)
     if (!/^\d+(\.\d{1,2})?$/.test(c.marks) || !Number.isFinite(n)) return 'Numbers only'
     if (n > paper.maxMarks) return `Can't be more than ${paper.maxMarks}`
@@ -68,30 +76,32 @@ function Grid({ exam, sheet }: { exam: Schemas['ExamDetailDto']; sheet: Sheet })
     const o = original[r.studentId]
     return c.absent !== o.absent || c.marks !== o.marks
   })
-  const invalid = rows.filter((r) => errorOf(cells[r.studentId]))
+  const invalid = rows.filter((r) => errorOf(cells[r.studentId], original[r.studentId]))
   const entered = rows.filter(
     (r) => cells[r.studentId].absent || cells[r.studentId].marks !== ''
   ).length
   const dirty = changed.length > 0
 
+  // The cells as they were when Save was pressed. Marks typed while the request is in flight
+  // stay "unsaved" instead of being counted as saved.
   const save = useMutation({
-    mutationFn: () =>
+    mutationFn: (sent: Record<string, Cell>) =>
       api<Schemas['SaveMarksResultDto']>(`/exams/${exam.id}/subjects/${paper.id}/marks`, {
         method: 'PUT',
         body: {
           marks: changed
             // A cleared cell can't be saved as "no mark"; only rows with a value or Absent go up.
-            .filter((r) => cells[r.studentId].absent || cells[r.studentId].marks !== '')
+            .filter((r) => sent[r.studentId].absent || sent[r.studentId].marks !== '')
             .map((r) => {
-              const c = cells[r.studentId]
+              const c = sent[r.studentId]
               return c.absent
                 ? { studentId: r.studentId, isAbsent: true }
                 : { studentId: r.studentId, isAbsent: false, marksObtained: Number(c.marks) }
             }),
         },
       }),
-    onSuccess: (r) => {
-      setOriginal(cells)
+    onSuccess: (r, sent) => {
+      setOriginal(sent)
       toast.success(
         `Saved ${r.saved} ${r.saved === 1 ? 'mark' : 'marks'} · ${r.enteredCount} of ${r.totalStudents} entered`
       )
@@ -117,10 +127,17 @@ function Grid({ exam, sheet }: { exam: Schemas['ExamDetailDto']; sheet: Sheet })
 
   const set = (studentId: string, patch: Partial<Cell>) =>
     setCells((c) => ({ ...c, [studentId]: { ...c[studentId], ...patch } }))
-  const focus = (i: number) => {
-    const el = inputs.current[Math.max(0, Math.min(rows.length - 1, i))]
-    el?.focus()
-    el?.select()
+  // Move from row `from` by `step`, skipping absent rows: their inputs are disabled and
+  // can't take focus, which used to leave Enter/↓ stuck above them.
+  const focus = (from: number, step: 1 | -1) => {
+    for (let i = from + step; i >= 0 && i < rows.length; i += step) {
+      const el = inputs.current[i]
+      if (el && !el.disabled) {
+        el.focus()
+        el.select()
+        return
+      }
+    }
   }
 
   return (
@@ -226,7 +243,7 @@ function Grid({ exam, sheet }: { exam: Schemas['ExamDetailDto']; sheet: Sheet })
               {rows.map((r, i) => {
                 const c = cells[r.studentId]
                 const o = original[r.studentId]
-                const err = errorOf(c)
+                const err = errorOf(c, o)
                 const isChanged = c.absent !== o.absent || c.marks !== o.marks
                 const fail =
                   !c.absent && c.marks !== '' && !err && Number(c.marks) < paper.passMarks
@@ -269,14 +286,20 @@ function Grid({ exam, sheet }: { exam: Schemas['ExamDetailDto']; sheet: Sheet })
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === 'ArrowDown') {
                             e.preventDefault()
-                            focus(i + 1)
+                            focus(i, 1)
                           } else if (e.key === 'ArrowUp') {
                             e.preventDefault()
-                            focus(i - 1)
-                          } else if (e.key.toLowerCase() === 'a') {
+                            focus(i, -1)
+                          } else if (
+                            e.key.toLowerCase() === 'a' &&
+                            !e.ctrlKey &&
+                            !e.metaKey &&
+                            !e.altKey
+                          ) {
+                            // Plain A only: Ctrl/Cmd+A is "select all", not "absent".
                             e.preventDefault()
                             set(r.studentId, { absent: true, marks: '' })
-                            focus(i + 1)
+                            focus(i, 1)
                           }
                         }}
                         className={`focus:border-brand min-h-10 w-24 rounded-[10px] border px-3 text-right text-[15px] font-semibold tabular-nums outline-none ${
@@ -350,7 +373,7 @@ function Grid({ exam, sheet }: { exam: Schemas['ExamDetailDto']; sheet: Sheet })
             variant="accent"
             busy={save.isPending}
             disabled={!dirty || invalid.length > 0}
-            onClick={() => save.mutate()}
+            onClick={() => save.mutate(cells)}
             className="min-h-10"
           >
             Save marks

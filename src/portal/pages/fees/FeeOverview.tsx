@@ -106,7 +106,7 @@ export function FeeOverview() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="dt flex flex-col gap-1.5 p-5">
             <span className="text-muted text-[13px]">{s.label}</span>
@@ -213,7 +213,7 @@ export function FeeOverview() {
                 error={fees.error}
                 empty={!items.length}
                 emptyText={
-                  q || classId || feeType
+                  q || classId || feeType || status
                     ? 'No fees match these filters.'
                     : 'No fees here yet. Use "Assign fees" to bill a class.'
                 }
@@ -239,6 +239,8 @@ export function FeeOverview() {
                             <small className="text-muted font-mono text-xs">{s.admissionNo}</small>
                           </span>
                         </span>
+                      ) : names ? (
+                        <span className="text-muted">Unknown student</span>
                       ) : (
                         <span className="h-4 w-32 animate-pulse rounded bg-slate-100" />
                       )}

@@ -54,14 +54,16 @@ export function Btn({
   children,
   className = '',
   type = 'button',
+  disabled,
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: keyof typeof btn; busy?: boolean }) {
   return (
     <button
       type={type}
-      disabled={busy || rest.disabled}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-60 ${btn[variant]} ${className}`}
+      // After the spread would let a caller's disabled={false} re-enable a busy button (double submit).
       {...rest}
+      disabled={busy || disabled}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-60 ${btn[variant]} ${className}`}
     >
       {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
       {children}

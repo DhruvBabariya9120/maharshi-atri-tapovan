@@ -120,7 +120,8 @@ export function ExamDetail() {
           </span>
           <p className="text-muted text-sm">
             {EXAM_TYPES[e.type]} · {dateRange(e.startDate, e.endDate)}
-            {e.publishedAt &&
+            {e.status === 'PUBLISHED' &&
+              e.publishedAt &&
               ` · published ${fmtDate(e.publishedAt)}${e.publishCount > 1 ? ` (${e.publishCount} times)` : ''}`}
           </p>
         </div>

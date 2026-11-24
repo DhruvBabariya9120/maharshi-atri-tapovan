@@ -197,10 +197,15 @@ function ReceiptPage({
           <dd className="text-heading">{data.studentName}</dd>
           <dt className="text-muted">Admission no.</dt>
           <dd className="text-heading font-mono">{data.admissionNo}</dd>
-          <dt className="text-muted">Class</dt>
-          <dd className="text-heading">
-            {[data.className, data.yearName].filter(Boolean).join(' · ')}
-          </dd>
+          {/* The student's API has no class for a fee, so their receipt can only show the year. */}
+          {(data.className || data.yearName) && (
+            <>
+              <dt className="text-muted">{data.className ? 'Class' : 'Academic year'}</dt>
+              <dd className="text-heading">
+                {[data.className, data.yearName].filter(Boolean).join(' · ')}
+              </dd>
+            </>
+          )}
           <dt className="text-muted">Towards</dt>
           <dd className="text-heading">
             {data.feeTitle} <span className="text-muted">({FEE_TYPES[data.feeType]})</span>

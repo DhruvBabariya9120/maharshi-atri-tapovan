@@ -42,7 +42,14 @@ export const inr = (amount: string | number | null | undefined) =>
 /** Paid share of a fee, for progress bars only (display, not arithmetic on money). */
 export const paidPercent = (f: { totalAmount: string; paidAmount: string }) => {
   const total = Number(f.totalAmount)
-  return total > 0 ? Math.min(100, Math.round((Number(f.paidAmount) / total) * 100)) : 100
+  // floor, not round: ₹44,999 of ₹45,000 must not read as 100%.
+  return total > 0 ? Math.min(100, Math.floor((Number(f.paidAmount) / total) * 100)) : 100
+}
+
+/** Today as YYYY-MM-DD in the user's own time zone (toISOString() is UTC: a day behind before 05:30 IST). */
+export const localToday = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 export function FeeStatusPill({ status, isOverdue }: { status: FeeStatus; isOverdue?: boolean }) {

@@ -163,7 +163,7 @@ export function ExamList() {
                     <ExamStatus exam={e} />
                   </td>
                   <td className="text-muted text-[13px] whitespace-nowrap">
-                    {e.publishedAt
+                    {e.status === 'PUBLISHED' && e.publishedAt
                       ? `${fmtDate(e.publishedAt)}${e.publishCount > 1 ? ` · ${e.publishCount} times` : ''}`
                       : '—'}
                   </td>

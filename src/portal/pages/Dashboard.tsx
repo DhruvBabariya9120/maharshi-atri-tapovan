@@ -350,7 +350,9 @@ export function Dashboard() {
                     <b className="text-heading">{e.name}</b>
                     <small className="text-muted text-xs">
                       {e.className} · {EXAM_TYPES[e.type]}
-                      {e.publishedAt && ` · published ${fmtDate(e.publishedAt)}`}
+                      {e.status === 'PUBLISHED' &&
+                        e.publishedAt &&
+                        ` · published ${fmtDate(e.publishedAt)}`}
                     </small>
                   </span>
                   {e.status === 'PUBLISHED' ? (

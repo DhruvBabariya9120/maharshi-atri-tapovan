@@ -45,7 +45,8 @@ const areaLabel = (t: string) =>
 const actionText = (a: string) => a.split('.').pop()!.replace(/[_-]/g, ' ').toLowerCase()
 const time = (iso: string) =>
   new Date(iso).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })
-const dayKey = (iso: string) => iso.slice(0, 10)
+// Local calendar day (en-CA gives YYYY-MM-DD). iso.slice(0, 10) is the UTC day, so a 01:15 IST entry landed under "Yesterday".
+const dayKey = (iso: string) => new Date(iso).toLocaleDateString('en-CA')
 function dayLabel(key: string) {
   const d = new Date(`${key}T00:00:00`)
   const diff = Math.round((new Date(new Date().toDateString()).getTime() - d.getTime()) / 86400_000)
