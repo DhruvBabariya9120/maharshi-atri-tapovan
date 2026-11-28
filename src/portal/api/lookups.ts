@@ -53,17 +53,20 @@ export function checkFile(file: File, purpose: Purpose): string | null {
   return null
 }
 
-/** Presign, upload straight to storage, and return the key for the owning endpoint. */
+/**
+ * Presign, upload straight to storage, and return the key for the owning endpoint.
+ * Storage is Cloudinary: a signed multipart POST of the returned `fields` plus the file.
+ * The size limit is enforced by the Cloudinary upload preset, so it isn't sent here.
+ */
 export async function uploadFile(file: File, purpose: Purpose, studentId?: string) {
   const p = await api<Schemas['PresignedUploadDto']>('/uploads/presign', {
     method: 'POST',
-    body: { purpose, contentType: file.type, sizeBytes: file.size, studentId },
+    body: { purpose, contentType: file.type, studentId },
   })
-  const res = await fetch(p.uploadUrl, {
-    method: 'PUT',
-    headers: p.headers as Record<string, string>,
-    body: file,
-  })
+  const form = new FormData()
+  Object.entries(p.fields).forEach(([k, v]) => form.append(k, v))
+  form.append('file', file)
+  const res = await fetch(p.uploadUrl, { method: p.method, body: form })
   if (!res.ok) throw new Error(`Upload failed (${res.status}). Try again.`)
   return p.key
 }

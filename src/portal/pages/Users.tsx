@@ -206,10 +206,6 @@ function Admins() {
 const adminSchema = z.object({
   fullName: z.string().trim().min(1, 'Enter the name'),
   email: z.email('Enter a valid email'),
-  phone: z
-    .string()
-    .trim()
-    .regex(/^(\+?\d[\d ]{7,14})?$/, 'Enter a valid phone number'),
 })
 type AdminForm = z.infer<typeof adminSchema>
 
@@ -217,11 +213,12 @@ function InviteAdminDialog({ open, onClose }: { open: boolean; onClose: () => vo
   const qc = useQueryClient()
   const form = useForm<AdminForm>({
     resolver: zodResolver(adminSchema),
-    defaultValues: { fullName: '', email: '', phone: '' },
+    defaultValues: { fullName: '', email: '' },
   })
   const send = useMutation({
     mutationFn: (v: AdminForm) =>
-      api<Invite>('/admins', { method: 'POST', body: { ...v, phone: v.phone || undefined } }),
+      // Name and email only: the API rejects a phone here. It can be added after they join.
+      api<Invite>('/admins', { method: 'POST', body: v }),
     onSuccess: (inv) => {
       toast.success(`Invite sent to ${inv.email}. The link works for 72 hours.`)
       form.reset()
@@ -256,9 +253,6 @@ function InviteAdminDialog({ open, onClose }: { open: boolean; onClose: () => vo
       </FieldWrap>
       <FieldWrap label="Email" htmlFor="ia-email" required error={e.email?.message}>
         <Input id="ia-email" type="email" error={e.email?.message} {...form.register('email')} />
-      </FieldWrap>
-      <FieldWrap label="Phone" htmlFor="ia-phone" hint="Optional" error={e.phone?.message}>
-        <Input id="ia-phone" type="tel" error={e.phone?.message} {...form.register('phone')} />
       </FieldWrap>
     </Dialog>
   )

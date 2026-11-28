@@ -38,7 +38,7 @@ const setupNav = [
   { to: '/admin/setup/classes', label: 'Classes' },
   { to: '/admin/setup/subjects', label: 'Subjects' },
   { to: '/admin/setup/grades', label: 'Grade scales' },
-  { to: '/admin/setup/payment', label: 'Payment details' },
+  { to: '/admin/setup/payment', label: 'Payment accounts' },
 ]
 
 const pill = ({ isActive }: { isActive: boolean }) =>

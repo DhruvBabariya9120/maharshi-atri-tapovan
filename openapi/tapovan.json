@@ -164,7 +164,7 @@
     },
     "/api/v1/auth/forgot-password": {
       "post": {
-        "description": "Always returns the same message, whether or not the account exists. Limited to 3 requests per 15 minutes per IP and email.",
+        "description": "Returns the same message whether or not the account exists. If the email cannot be sent the reset token is discarded and the call fails with 502 (which reveals that the account exists; accepted). Limited to 3 requests per 15 minutes per IP and email.",
         "operationId": "auth_forgotPassword",
         "parameters": [],
         "requestBody": {
@@ -190,6 +190,16 @@
           },
           "429": {
             "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The reset email could not be sent",
             "content": {
               "application/json": {
                 "schema": {
@@ -286,6 +296,16 @@
               }
             }
           },
+          "409": {
+            "description": "Email already belongs to another account, or the student already has an account (linked meanwhile)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
           "410": {
             "description": "Invitation expired, already accepted or invalid",
             "content": {
@@ -371,6 +391,16 @@
         "responses": {
           "204": {
             "description": ""
+          },
+          "400": {
+            "description": "The new password equals the account email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Missing token or wrong current password",
@@ -954,6 +984,16 @@
               }
             }
           },
+          "404": {
+            "description": "Academic year not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
           "409": {
             "description": "Standard already exists in that year",
             "content": {
@@ -1023,7 +1063,7 @@
             }
           },
           "404": {
-            "description": "An academic year was not found",
+            "description": "Academic year not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -1915,7 +1955,7 @@
             }
           },
           "409": {
-            "description": "Name already exists",
+            "description": "Name already exists, or isDefault=false sent for the current default scale",
             "content": {
               "application/json": {
                 "schema": {
@@ -2031,6 +2071,7 @@
             "name": "academicYearId",
             "required": false,
             "in": "query",
+            "description": "Students enrolled that year. Also the year for each row's class, roll no, boarding and fee status (default: current year).",
             "schema": {
               "format": "uuid",
               "type": "string"
@@ -2055,6 +2096,36 @@
                 "ACTIVE",
                 "INACTIVE",
                 "ALUMNI"
+              ]
+            }
+          },
+          {
+            "name": "feeStatus",
+            "required": false,
+            "in": "query",
+            "description": "Fee status in the filtered (else current) year.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PAID",
+                "PARTIAL",
+                "PENDING",
+                "NO_FEES"
+              ]
+            }
+          },
+          {
+            "name": "portalStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NOT_INVITED",
+                "INVITED",
+                "INVITE_EXPIRED",
+                "ACTIVE",
+                "DEACTIVATED"
               ]
             }
           },
@@ -2193,8 +2264,18 @@
               }
             }
           },
+          "404": {
+            "description": "Class or academic year not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
           "409": {
-            "description": "Guardian email already in use",
+            "description": "Guardian email already in use; or, with `sendInvite`, it already belongs to another account (\"Email already belongs to another account\")",
             "content": {
               "application/json": {
                 "schema": {
@@ -2364,7 +2445,7 @@
             }
           },
           "409": {
-            "description": "Guardian email already in use",
+            "description": "Guardian email already in use (also by another account when the student has a login); or, when a pending invite is re-sent to the new email, it already belongs to another account (\"Email already belongs to another account\")",
             "content": {
               "application/json": {
                 "schema": {
@@ -2533,6 +2614,93 @@
           }
         ],
         "summary": "Change student status",
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/api/v1/students/{id}/restore": {
+      "post": {
+        "description": "Clears the delete mark and re-enables the portal login unless the status is INACTIVE. The invitation revoked by the delete is not brought back.",
+        "operationId": "students_restore",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Student not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Student is not deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restore a deleted student",
         "tags": [
           "students"
         ]
@@ -2859,7 +3027,7 @@
         ]
       },
       "post": {
-        "description": "Call after uploading with a STUDENT_DOCUMENT presign.",
+        "description": "Call after uploading with a STUDENT_DOCUMENT presign. The stored `mimeType` is derived from the uploaded file; the request `mimeType` must match it.",
         "operationId": "students_addDocument",
         "parameters": [
           {
@@ -2893,7 +3061,7 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "Validation failed, the file key is invalid or not uploaded, or `mimeType` does not match the uploaded file",
             "content": {
               "application/json": {
                 "schema": {
@@ -2992,6 +3160,16 @@
           },
           "403": {
             "description": "Admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Student, class or academic year not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -3467,9 +3645,279 @@
         ]
       }
     },
+    "/api/v1/invitations": {
+      "post": {
+        "description": "Sends one invitation per student to the guardian email. 1-500 items. All-or-nothing in one transaction: if any item is invalid the whole request is rejected with per-item errors (e.g. `items.3.studentId`) and nothing is sent. A new invite revokes any older pending invite for the same email, so only the newest link works.",
+        "operationId": "invitations_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvitationsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationsResultDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "A student does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A student already has an account, is inactive, or an id is repeated; or a guardian email already belongs to another account (\"Email already belongs to another account\")",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Invite students (bulk)",
+        "tags": [
+          "invitations"
+        ]
+      },
+      "get": {
+        "operationId": "invitations_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "ACCEPTED",
+                "EXPIRED",
+                "REVOKED"
+              ]
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "STUDENT"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedInvitationsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List invitations",
+        "tags": [
+          "invitations"
+        ]
+      }
+    },
+    "/api/v1/invitations/{id}": {
+      "delete": {
+        "operationId": "invitations_revoke",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "Invalid id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invitation not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Invitation already accepted or revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Revoke a pending invitation",
+        "tags": [
+          "invitations"
+        ]
+      }
+    },
     "/api/v1/uploads/presign": {
       "post": {
-        "description": "Upload straight to storage with the returned URL and headers, then send `key` to the owning endpoint. Limits: STUDENT_DOCUMENT 10 MB (pdf, jpeg, png); STUDENT_PHOTO 2 MB, PAYMENT_QR 2 MB (jpeg, png, webp); PAYMENT_SCREENSHOT 5 MB (jpeg, png, webp). STUDENT callers may only presign PAYMENT_SCREENSHOT and STUDENT_PHOTO. `studentId`: ADMIN must send it for STUDENT_DOCUMENT and STUDENT_PHOTO and must omit it for PAYMENT_QR; STUDENT must omit it (their own student record is used).",
+        "description": "POST the file as multipart/form-data (the `file` part plus every returned field, unchanged) to `uploadUrl`, then send `key` to the owning endpoint. Size and format limits are enforced by the upload presets. Accepted content types: STUDENT_DOCUMENT pdf, jpeg, png; STUDENT_PHOTO, PAYMENT_QR and PAYMENT_SCREENSHOT jpeg, png, webp. STUDENT callers may only presign PAYMENT_SCREENSHOT and STUDENT_PHOTO. `studentId`: ADMIN must send it for STUDENT_DOCUMENT and STUDENT_PHOTO (404 if the student does not exist) and must omit it for PAYMENT_QR; STUDENT must omit it (their own student record is used; 404 if none).",
         "operationId": "uploads_presign",
         "parameters": [],
         "requestBody": {
@@ -3494,7 +3942,7 @@
             }
           },
           "400": {
-            "description": "Invalid body, size or content type",
+            "description": "Invalid body or content type",
             "content": {
               "application/json": {
                 "schema": {
@@ -3522,6 +3970,16 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Student not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3529,7 +3987,7 @@
             "bearer": []
           }
         ],
-        "summary": "Get a presigned PUT URL",
+        "summary": "Get a signed Cloudinary upload",
         "tags": [
           "uploads"
         ]
@@ -4230,6 +4688,83 @@
         ]
       }
     },
+    "/api/v1/payments/{id}": {
+      "get": {
+        "description": "Everything the receipt shows. paidToDate and balance are frozen as of this payment. Voided payments are returned with voidedAt and voidReason.",
+        "operationId": "fees_receipt",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminReceiptDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Payment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Receipt for one payment",
+        "tags": [
+          "fees"
+        ]
+      }
+    },
     "/api/v1/payments/{id}/void": {
       "post": {
         "operationId": "fees_voidPayment",
@@ -4766,9 +5301,10 @@
         ]
       }
     },
-    "/api/v1/payment-settings": {
+    "/api/v1/payment-accounts": {
       "get": {
-        "operationId": "paymentSettings_get",
+        "description": "Not deleted, including ones with no fee types.",
+        "operationId": "paymentAccounts_list",
         "parameters": [],
         "responses": {
           "200": {
@@ -4776,7 +5312,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaymentSettingsDto"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentAccountDto"
+                  }
                 }
               }
             }
@@ -4807,32 +5346,32 @@
             "bearer": []
           }
         ],
-        "summary": "Get the school payment settings (single record)",
+        "summary": "List payment accounts",
         "tags": [
-          "payment-settings"
+          "payment-accounts"
         ]
       },
-      "put": {
-        "description": "All fields optional. `qrKey` comes from a PAYMENT_QR presign (admin only).",
-        "operationId": "paymentSettings_update",
+      "post": {
+        "description": "Needs a name, at least one fee type, and a UPI ID or full bank details (account name, number, IFSC). `qrKey` comes from a PAYMENT_QR presign.",
+        "operationId": "paymentAccounts_create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePaymentSettingsDto"
+                "$ref": "#/components/schemas/CreatePaymentAccountDto"
               }
             }
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaymentSettingsDto"
+                  "$ref": "#/components/schemas/PaymentAccountDto"
                 }
               }
             }
@@ -4866,6 +5405,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "A fee type already belongs to another account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -4873,9 +5422,174 @@
             "bearer": []
           }
         ],
-        "summary": "Update the payment settings",
+        "summary": "Create a payment account",
         "tags": [
-          "payment-settings"
+          "payment-accounts"
+        ]
+      }
+    },
+    "/api/v1/payment-accounts/{id}": {
+      "patch": {
+        "description": "`feeTypes` replaces the whole list and may be empty. The result must still have a UPI ID or full bank details (400).",
+        "operationId": "paymentAccounts_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePaymentAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentAccountDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Account not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A fee type already belongs to another account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a payment account",
+        "tags": [
+          "payment-accounts"
+        ]
+      },
+      "delete": {
+        "description": "Only when it has no fee types: move them to another account first. Past submissions keep pointing at it.",
+        "operationId": "paymentAccounts_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Account not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Account still has fee types",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a payment account (soft)",
+        "tags": [
+          "payment-accounts"
         ]
       }
     },
@@ -4928,7 +5642,7 @@
     },
     "/api/v1/me/payments": {
       "get": {
-        "description": "Non-voided payments, newest first.",
+        "description": "All own payments, newest first. Voided ones are marked by voidedAt.",
         "operationId": "meFees_payments",
         "parameters": [
           {
@@ -4998,9 +5712,87 @@
         ]
       }
     },
-    "/api/v1/me/payment-settings": {
+    "/api/v1/me/payments/{id}": {
       "get": {
-        "operationId": "meFees_settings",
+        "description": "Own payments only; another student's payment is a 404. A voided payment is returned with voidedAt set.",
+        "operationId": "meFees_receipt",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Student role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Payment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Own receipt (STUDENT)",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/api/v1/me/payment-accounts": {
+      "get": {
+        "description": "Accounts that collect at least one fee type, with a signed qrUrl. Pay each fee into the account whose feeTypes include it. A fee type on no account is paid in cash at the office.",
+        "operationId": "meFees_accounts",
         "parameters": [],
         "responses": {
           "200": {
@@ -5008,7 +5800,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaymentSettingsDto"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MyPaymentAccountDto"
+                  }
                 }
               }
             }
@@ -5039,7 +5834,7 @@
             "bearer": []
           }
         ],
-        "summary": "School UPI / bank details (STUDENT)",
+        "summary": "School payment accounts (STUDENT)",
         "tags": [
           "me"
         ]
@@ -5111,7 +5906,7 @@
             }
           },
           "404": {
-            "description": "Fee not found",
+            "description": "Fee or payment account not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -5436,6 +6231,7 @@
         ]
       },
       "patch": {
+        "description": "Changing gradeScaleId on a published exam is refused with 409 (unpublish first).",
         "operationId": "exams_update",
         "parameters": [
           {
@@ -5847,7 +6643,7 @@
     },
     "/api/v1/exams/{id}/publish": {
       "post": {
-        "description": "Computes totals, percentage, grade, rank (1,1,3 style) and isPass into exam_results, sets PUBLISHED, bumps publishCount. Overall pass = every subject meets its pass marks AND the grade band isPass. Students see results only after this.",
+        "description": "Computes totals, percentage, grade, rank (1,1,3 style) and isPass into exam_results, sets PUBLISHED, bumps publishCount. Overall pass = every subject meets its pass marks AND the grade band isPass. Students see results only after this. Publishing an already published exam rebuilds the results from the current marks, bumps publishCount and mails students that results were updated. Refused with 409 when the exam has no subjects, has no eligible students, or marks are incomplete.",
         "operationId": "exams_publish",
         "parameters": [
           {
@@ -5901,7 +6697,7 @@
             }
           },
           "409": {
-            "description": "Marks are incomplete",
+            "description": "Marks are incomplete, the exam has no subjects, or it has no eligible students (\"No students to publish\")",
             "content": {
               "application/json": {
                 "schema": {
@@ -6216,7 +7012,7 @@
             "required": false,
             "in": "query",
             "schema": {
-              "example": "exam",
+              "example": "subjects",
               "type": "string"
             }
           },
@@ -6234,7 +7030,7 @@
             "required": false,
             "in": "query",
             "schema": {
-              "example": "EXAM_PUBLISH",
+              "example": "POST /subjects",
               "type": "string"
             }
           },
@@ -6252,7 +7048,7 @@
             "name": "to",
             "required": false,
             "in": "query",
-            "description": "ISO 8601 date-time (inclusive). Must not be before from.",
+            "description": "ISO 8601 date-time (inclusive), an instant and not end-of-day: a date-only value means midnight at the start of that day. Must not be before from.",
             "schema": {
               "example": "2026-10-31T23:59:59Z",
               "type": "string"
@@ -6360,6 +7156,16 @@
           },
           "403": {
             "description": "Admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Academic year not found (unknown academicYearId)",
             "content": {
               "application/json": {
                 "schema": {
@@ -6652,7 +7458,7 @@
         ]
       },
       "post": {
-        "description": "Creates one admin invitation and emails the invite link. The account is created when the invite is accepted.",
+        "description": "Creates one admin invitation and emails the invite link. The account is created when the invite is accepted. Any older pending invite for the same email is revoked.",
         "operationId": "admins_invite",
         "parameters": [],
         "requestBody": {
@@ -6707,7 +7513,17 @@
             }
           },
           "409": {
-            "description": "Email already in use or invited",
+            "description": "Email already belongs to an account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The invitation email could not be sent; nothing was saved",
             "content": {
               "application/json": {
                 "schema": {
@@ -6982,256 +7798,6 @@
         "summary": "Activate or deactivate an admin",
         "tags": [
           "admins"
-        ]
-      }
-    },
-    "/api/v1/invitations": {
-      "post": {
-        "description": "Sends one invitation per student to the guardian email. 1-500 items. All-or-nothing in one transaction: if any item is invalid the whole request is rejected with per-item errors (e.g. `items.3.studentId`) and nothing is sent.",
-        "operationId": "invitations_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateInvitationsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InvitationsResultDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation failed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid access token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Admin role required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "A student does not exist",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Invite students (bulk)",
-        "tags": [
-          "invitations"
-        ]
-      },
-      "get": {
-        "operationId": "invitations_list",
-        "parameters": [
-          {
-            "name": "page",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "default": 1,
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20,
-              "type": "number"
-            }
-          },
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PENDING",
-                "ACCEPTED",
-                "EXPIRED",
-                "REVOKED"
-              ]
-            }
-          },
-          {
-            "name": "role",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ADMIN",
-                "STUDENT"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedInvitationsDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid query",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid access token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Admin role required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List invitations",
-        "tags": [
-          "invitations"
-        ]
-      }
-    },
-    "/api/v1/invitations/{id}": {
-      "delete": {
-        "operationId": "invitations_revoke",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
-            "description": "Invalid id",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid access token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Admin role required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Invitation not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDto"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Revoke a pending invitation",
-        "tags": [
-          "invitations"
         ]
       }
     }
@@ -7660,12 +8226,24 @@
             "type": "string",
             "example": "5",
             "maxLength": 20
+          },
+          "studentCount": {
+            "type": "number",
+            "example": 38,
+            "description": "ACTIVE, non-deleted students enrolled in this class."
+          },
+          "hostelCount": {
+            "type": "number",
+            "example": 12,
+            "description": "Of studentCount, those with boarding HOSTEL."
           }
         },
         "required": [
           "id",
           "academicYearId",
-          "standard"
+          "standard",
+          "studentCount",
+          "hostelCount"
         ]
       },
       "PaginatedClassesDto": {
@@ -8053,7 +8631,7 @@
           },
           "bands": {
             "minItems": 1,
-            "description": "At least 1 band. Per band 0 <= minPercent <= maxPercent <= 100. The Phase 3 service also rejects (400) duplicate grades, overlapping ranges and gaps between bands. A \"Pass / Fail only\" scale is just a scale with 2 bands. On update, bands replace the existing set.",
+            "description": "At least 1 band. Per band 0 <= minPercent <= maxPercent <= 100. The Phase 3 service also rejects (400) duplicate grades (compared case-insensitively), overlapping ranges and gaps between bands. A \"Pass / Fail only\" scale is just a scale with 2 bands. On update, bands replace the existing set.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/GradeBandInputDto"
@@ -8081,7 +8659,7 @@
           },
           "bands": {
             "minItems": 1,
-            "description": "At least 1 band. Per band 0 <= minPercent <= maxPercent <= 100. The Phase 3 service also rejects (400) duplicate grades, overlapping ranges and gaps between bands. A \"Pass / Fail only\" scale is just a scale with 2 bands. On update, bands replace the existing set.",
+            "description": "At least 1 band. Per band 0 <= minPercent <= maxPercent <= 100. The Phase 3 service also rejects (400) duplicate grades (compared case-insensitively), overlapping ranges and gaps between bands. A \"Pass / Fail only\" scale is just a scale with 2 bands. On update, bands replace the existing set.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/GradeBandInputDto"
@@ -8089,7 +8667,7 @@
           }
         }
       },
-      "StudentDto": {
+      "StudentListItemDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -8205,6 +8783,50 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "currentClassName": {
+            "type": "string",
+            "nullable": true,
+            "example": "5",
+            "description": "Class standard in that year; null when not enrolled."
+          },
+          "rollNo": {
+            "type": "number",
+            "nullable": true,
+            "example": 12
+          },
+          "boarding": {
+            "type": "string",
+            "enum": [
+              "HOSTEL",
+              "DAY_SCHOLAR"
+            ],
+            "nullable": true
+          },
+          "feeStatus": {
+            "type": "string",
+            "enum": [
+              "PAID",
+              "PARTIAL",
+              "PENDING",
+              "NO_FEES"
+            ],
+            "description": "Over that year's fee items: PAID (all paid), PARTIAL (something paid, not all), PENDING (nothing paid), NO_FEES (no items)."
+          },
+          "hasOverdue": {
+            "type": "boolean",
+            "description": "Any fee item that year is past due and not fully paid."
+          },
+          "portalStatus": {
+            "type": "string",
+            "enum": [
+              "NOT_INVITED",
+              "INVITED",
+              "INVITE_EXPIRED",
+              "ACTIVE",
+              "DEACTIVATED"
+            ],
+            "description": "NOT_INVITED (no account, no pending or expired invite), INVITED (pending invite), INVITE_EXPIRED (latest invite expired), ACTIVE (account can log in), DEACTIVATED (account exists, login blocked)."
           }
         },
         "required": [
@@ -8222,7 +8844,13 @@
           "guardianEmail",
           "hasPhoto",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "currentClassName",
+          "rollNo",
+          "boarding",
+          "feeStatus",
+          "hasOverdue",
+          "portalStatus"
         ]
       },
       "PaginatedStudentsDto": {
@@ -8231,7 +8859,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StudentDto"
+              "$ref": "#/components/schemas/StudentListItemDto"
             }
           },
           "page": {
@@ -8407,6 +9035,159 @@
           "items"
         ]
       },
+      "StudentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "admissionNo": {
+            "type": "string",
+            "example": "MAT/2026/0001"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Aarav"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Sharma"
+          },
+          "dob": {
+            "type": "string",
+            "example": "2012-04-18",
+            "description": "ISO date."
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER"
+            ]
+          },
+          "admissionDate": {
+            "type": "string",
+            "example": "2026-06-10",
+            "description": "ISO date."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE",
+              "ALUMNI"
+            ]
+          },
+          "bloodGroup": {
+            "type": "string",
+            "enum": [
+              "A+",
+              "A-",
+              "B+",
+              "B-",
+              "AB+",
+              "AB-",
+              "O+",
+              "O-"
+            ],
+            "nullable": true
+          },
+          "aadhaarNo": {
+            "type": "string",
+            "nullable": true,
+            "example": "123456789012",
+            "description": "12 digits. Returned in full to ADMIN callers; masked (e.g. XXXXXXXX9012) for STUDENT callers."
+          },
+          "motherTongue": {
+            "type": "string",
+            "nullable": true
+          },
+          "previousSchool": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressLine": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "state": {
+            "type": "string",
+            "nullable": true
+          },
+          "pincode": {
+            "type": "string",
+            "nullable": true
+          },
+          "guardianName": {
+            "type": "string"
+          },
+          "guardianPhone": {
+            "type": "string",
+            "example": "9876543210"
+          },
+          "guardianRelation": {
+            "type": "string",
+            "example": "Father"
+          },
+          "guardianEmail": {
+            "type": "string",
+            "example": "guardian@example.com",
+            "description": "Also the student portal login email."
+          },
+          "hasPhoto": {
+            "type": "boolean",
+            "description": "Whether a photo is set. Fetch it via a signed URL."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "admissionNo",
+          "firstName",
+          "lastName",
+          "dob",
+          "gender",
+          "admissionDate",
+          "status",
+          "guardianName",
+          "guardianPhone",
+          "guardianRelation",
+          "guardianEmail",
+          "hasPhoto",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "InvitationFailureDto": {
+        "type": "object",
+        "properties": {
+          "studentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Could not send the invitation email"
+          }
+        },
+        "required": [
+          "studentId",
+          "reason"
+        ]
+      },
       "StudentsResultDto": {
         "type": "object",
         "properties": {
@@ -8415,10 +9196,18 @@
             "items": {
               "$ref": "#/components/schemas/StudentDto"
             }
+          },
+          "inviteFailed": {
+            "description": "Students created with `sendInvite` whose invitation email could not be sent. The students stay saved; each failed invite is revoked and listed here.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvitationFailureDto"
+            }
           }
         },
         "required": [
-          "items"
+          "items",
+          "inviteFailed"
         ]
       },
       "UpdateStudentDto": {
@@ -8546,7 +9335,7 @@
         "properties": {
           "url": {
             "type": "string",
-            "example": "https://bucket.r2.cloudflarestorage.com/..."
+            "example": "https://api.cloudinary.com/v1_1/<cloud>/image/download?..."
           },
           "expiresAt": {
             "type": "string",
@@ -8692,20 +9481,15 @@
               "application/pdf",
               "image/jpeg",
               "image/png"
-            ]
-          },
-          "sizeBytes": {
-            "type": "number",
-            "example": 524288,
-            "maximum": 10485760
+            ],
+            "description": "Must match the uploaded file: the server stores the type derived from the file (the key extension) and rejects a mismatch with 400."
           }
         },
         "required": [
           "type",
           "title",
           "key",
-          "mimeType",
-          "sizeBytes"
+          "mimeType"
         ]
       },
       "CreateEnrollmentItemDto": {
@@ -8845,6 +9629,140 @@
           }
         }
       },
+      "CreateInvitationItemDto": {
+        "type": "object",
+        "properties": {
+          "studentId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The invite is sent to this student guardian email."
+          }
+        },
+        "required": [
+          "studentId"
+        ]
+      },
+      "CreateInvitationsDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "minItems": 1,
+            "maxItems": 500,
+            "description": "1-500 items. All-or-nothing: one invalid item rejects the whole request with per-item errors (e.g. items.3.field).",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateInvitationItemDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "InvitationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "example": "guardian@example.com"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "STUDENT"
+            ]
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Asha Verma"
+          },
+          "studentId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "EXPIRED",
+              "REVOKED"
+            ]
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "role",
+          "fullName",
+          "studentId",
+          "status",
+          "expiresAt",
+          "createdAt"
+        ]
+      },
+      "InvitationsResultDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvitationDto"
+            }
+          },
+          "failed": {
+            "description": "Invitations whose email could not be sent. `items` holds only the invitations that were sent; each failed one is revoked and listed here.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvitationFailureDto"
+            }
+          }
+        },
+        "required": [
+          "items",
+          "failed"
+        ]
+      },
+      "PaginatedInvitationsDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvitationDto"
+            }
+          },
+          "page": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "limit",
+          "total"
+        ]
+      },
       "PresignUploadDto": {
         "type": "object",
         "properties": {
@@ -8861,11 +9779,6 @@
             "type": "string",
             "example": "application/pdf"
           },
-          "sizeBytes": {
-            "type": "number",
-            "example": 524288,
-            "minimum": 1
-          },
           "studentId": {
             "type": "string",
             "format": "uuid",
@@ -8874,8 +9787,7 @@
         },
         "required": [
           "purpose",
-          "contentType",
-          "sizeBytes"
+          "contentType"
         ]
       },
       "PresignedUploadDto": {
@@ -8883,33 +9795,47 @@
         "properties": {
           "uploadUrl": {
             "type": "string",
-            "example": "https://bucket.r2.cloudflarestorage.com/..."
+            "example": "https://api.cloudinary.com/v1_1/<cloud>/raw/upload",
+            "description": "Cloudinary upload endpoint to POST the file to."
           },
-          "key": {
+          "method": {
             "type": "string",
-            "example": "student-document/<studentId>/<uuid>.pdf"
+            "enum": [
+              "POST"
+            ],
+            "example": "POST"
           },
-          "expiresAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "headers": {
+          "fields": {
             "type": "object",
             "additionalProperties": {
               "type": "string"
             },
             "example": {
-              "Content-Type": "application/pdf",
-              "Content-Length": "524288"
+              "api_key": "123456789012345",
+              "timestamp": "1767225600",
+              "signature": "<sha1 hex>",
+              "public_id": "tapovan/student-document/<studentId>/<uuid>.pdf",
+              "upload_preset": "tapovan_student_document",
+              "type": "private"
             },
-            "description": "Headers the client must send with the PUT (`Content-Type` and `Content-Length`)."
+            "description": "Form fields to send as multipart/form-data together with the `file` part. Send them unchanged."
+          },
+          "key": {
+            "type": "string",
+            "example": "tapovan/student-document/<studentId>/<uuid>.pdf",
+            "description": "Send this key to the owning endpoint after the upload."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
           "uploadUrl",
+          "method",
+          "fields",
           "key",
-          "expiresAt",
-          "headers"
+          "expiresAt"
         ]
       },
       "AdminFeePaymentLineDto": {
@@ -8943,7 +9869,8 @@
           "voidedAt": {
             "type": "string",
             "format": "date-time",
-            "nullable": true
+            "nullable": true,
+            "description": "Set when the payment was voided. Show it as Voided."
           },
           "voidReason": {
             "type": "string",
@@ -9034,7 +9961,7 @@
             "format": "date-time"
           },
           "payments": {
-            "description": "All payments including voided, oldest first.",
+            "description": "All payments including voided, oldest first, with void reasons.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AdminFeePaymentLineDto"
@@ -9481,6 +10408,140 @@
           "items"
         ]
       },
+      "AdminReceiptDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receiptNo": {
+            "type": "string",
+            "example": "RCPT-2026-000123"
+          },
+          "amount": {
+            "type": "string",
+            "example": "5000.00"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "CASH",
+              "UPI",
+              "BANK_TRANSFER",
+              "CHEQUE"
+            ]
+          },
+          "referenceNo": {
+            "type": "string",
+            "nullable": true,
+            "example": "412345678901"
+          },
+          "paidOn": {
+            "type": "string",
+            "example": "2026-07-01"
+          },
+          "recordedByName": {
+            "type": "string",
+            "example": "Office Admin",
+            "description": "Admin who recorded or approved it."
+          },
+          "feeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "feeTitle": {
+            "type": "string",
+            "example": "Tuition Term 1"
+          },
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
+          },
+          "feeTotalAmount": {
+            "type": "string",
+            "example": "45000.00",
+            "description": "Current fee total."
+          },
+          "studentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studentName": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "admissionNo": {
+            "type": "string",
+            "example": "MAT/2026/0001"
+          },
+          "className": {
+            "type": "string",
+            "nullable": true,
+            "example": "5",
+            "description": "Class in the fee's academic year; null when not enrolled."
+          },
+          "academicYearName": {
+            "type": "string",
+            "example": "2026-27"
+          },
+          "paidToDate": {
+            "type": "string",
+            "example": "20000.00",
+            "description": "Paid on this fee including this payment, as of this payment."
+          },
+          "balance": {
+            "type": "string",
+            "example": "25000.00",
+            "description": "Remaining on this fee right after this payment."
+          },
+          "voidedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Set when voided. Show the receipt as Voided."
+          },
+          "voidReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "receiptNo",
+          "amount",
+          "method",
+          "referenceNo",
+          "paidOn",
+          "recordedByName",
+          "feeId",
+          "feeTitle",
+          "feeType",
+          "feeTotalAmount",
+          "studentId",
+          "studentName",
+          "admissionNo",
+          "className",
+          "academicYearName",
+          "paidToDate",
+          "balance",
+          "voidedAt",
+          "voidReason",
+          "notes"
+        ]
+      },
       "ReasonDto": {
         "type": "object",
         "properties": {
@@ -9597,6 +10658,15 @@
               "BANK_TRANSFER"
             ]
           },
+          "paymentAccountId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Account the student paid into."
+          },
+          "paymentAccountName": {
+            "type": "string",
+            "example": "Tuition account"
+          },
           "referenceNo": {
             "type": "string",
             "example": "412345678901",
@@ -9656,6 +10726,8 @@
           "feeType",
           "amount",
           "method",
+          "paymentAccountId",
+          "paymentAccountName",
           "referenceNo",
           "paidOn",
           "note",
@@ -9733,6 +10805,15 @@
               "BANK_TRANSFER"
             ]
           },
+          "paymentAccountId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Account the student paid into."
+          },
+          "paymentAccountName": {
+            "type": "string",
+            "example": "Tuition account"
+          },
           "referenceNo": {
             "type": "string",
             "example": "412345678901",
@@ -9796,6 +10877,8 @@
           "feeType",
           "amount",
           "method",
+          "paymentAccountId",
+          "paymentAccountName",
           "referenceNo",
           "paidOn",
           "note",
@@ -9810,9 +10893,33 @@
           "screenshotUrl"
         ]
       },
-      "PaymentSettingsDto": {
+      "PaymentAccountDto": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Tuition account"
+          },
+          "feeTypes": {
+            "type": "array",
+            "description": "Fee types paid into this account. Empty when the admin moved them all elsewhere.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "TUITION",
+                "HOSTEL",
+                "SCHOOL",
+                "ACTIVITY",
+                "WASHING",
+                "DRESS",
+                "STATIONERY"
+              ]
+            }
+          },
           "upiId": {
             "type": "string",
             "nullable": true,
@@ -9851,9 +10958,20 @@
           "instructions": {
             "type": "string",
             "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
+          "id",
+          "name",
+          "feeTypes",
           "upiId",
           "payeeName",
           "qrKey",
@@ -9862,16 +10980,40 @@
           "bankAccountNo",
           "ifsc",
           "bankBranch",
-          "instructions"
+          "instructions",
+          "createdAt",
+          "updatedAt"
         ]
       },
-      "UpdatePaymentSettingsDto": {
+      "CreatePaymentAccountDto": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "example": "Tuition account",
+            "maxLength": 100
+          },
+          "feeTypes": {
+            "type": "array",
+            "description": "At least one. A fee type already on another account is a 409.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "TUITION",
+                "HOSTEL",
+                "SCHOOL",
+                "ACTIVITY",
+                "WASHING",
+                "DRESS",
+                "STATIONERY"
+              ]
+            }
+          },
           "upiId": {
             "type": "string",
             "example": "school@okhdfc",
-            "maxLength": 100
+            "maxLength": 100,
+            "description": "Required unless full bank details are given."
           },
           "payeeName": {
             "type": "string",
@@ -9886,17 +11028,19 @@
           },
           "bankAccountName": {
             "type": "string",
-            "maxLength": 150
+            "maxLength": 150,
+            "description": "Required when upiId is not given."
           },
           "bankAccountNo": {
             "type": "string",
             "example": "123456789012",
-            "maxLength": 30
+            "maxLength": 30,
+            "description": "Required when upiId is not given."
           },
           "ifsc": {
             "type": "string",
             "example": "HDFC0001234",
-            "maxLength": 11
+            "description": "Required when upiId is not given."
           },
           "bankBranch": {
             "type": "string",
@@ -9905,6 +11049,67 @@
           "instructions": {
             "type": "string",
             "example": "Quote the admission number in the remark."
+          }
+        },
+        "required": [
+          "name",
+          "feeTypes"
+        ]
+      },
+      "UpdatePaymentAccountDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "feeTypes": {
+            "type": "array",
+            "description": "Replaces the list. May be empty (the account is then hidden from students and can be deleted). A fee type on another account is a 409.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "TUITION",
+                "HOSTEL",
+                "SCHOOL",
+                "ACTIVITY",
+                "WASHING",
+                "DRESS",
+                "STATIONERY"
+              ]
+            }
+          },
+          "upiId": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "payeeName": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "qrKey": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "`key` from a PAYMENT_QR presign."
+          },
+          "bankAccountName": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "bankAccountNo": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "ifsc": {
+            "type": "string",
+            "example": "HDFC0001234"
+          },
+          "bankBranch": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "instructions": {
+            "type": "string"
           }
         }
       },
@@ -9935,6 +11140,12 @@
           "receiptNo": {
             "type": "string",
             "example": "RCPT-2026-000123"
+          },
+          "voidedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Set when the payment was voided. Show it as Voided."
           }
         },
         "required": [
@@ -9942,7 +11153,8 @@
           "paidOn",
           "amount",
           "method",
-          "receiptNo"
+          "receiptNo",
+          "voidedAt"
         ]
       },
       "StudentFeeDto": {
@@ -10019,7 +11231,7 @@
             "format": "date-time"
           },
           "payments": {
-            "description": "Non-voided payments, oldest first.",
+            "description": "All payments, oldest first. Voided ones are marked by voidedAt and not counted.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/FeePaymentLineDto"
@@ -10109,6 +11321,12 @@
             "type": "string",
             "example": "RCPT-2026-000123"
           },
+          "voidedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Set when the payment was voided. Show it as Voided."
+          },
           "feeId": {
             "type": "string",
             "format": "uuid"
@@ -10136,9 +11354,211 @@
           "amount",
           "method",
           "receiptNo",
+          "voidedAt",
           "feeId",
           "feeTitle",
           "feeType"
+        ]
+      },
+      "ReceiptDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receiptNo": {
+            "type": "string",
+            "example": "RCPT-2026-000123"
+          },
+          "amount": {
+            "type": "string",
+            "example": "5000.00"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "CASH",
+              "UPI",
+              "BANK_TRANSFER",
+              "CHEQUE"
+            ]
+          },
+          "referenceNo": {
+            "type": "string",
+            "nullable": true,
+            "example": "412345678901"
+          },
+          "paidOn": {
+            "type": "string",
+            "example": "2026-07-01"
+          },
+          "recordedByName": {
+            "type": "string",
+            "example": "Office Admin",
+            "description": "Admin who recorded or approved it."
+          },
+          "feeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "feeTitle": {
+            "type": "string",
+            "example": "Tuition Term 1"
+          },
+          "feeType": {
+            "type": "string",
+            "enum": [
+              "TUITION",
+              "HOSTEL",
+              "SCHOOL",
+              "ACTIVITY",
+              "WASHING",
+              "DRESS",
+              "STATIONERY"
+            ]
+          },
+          "feeTotalAmount": {
+            "type": "string",
+            "example": "45000.00",
+            "description": "Current fee total."
+          },
+          "studentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studentName": {
+            "type": "string",
+            "example": "Aarav Sharma"
+          },
+          "admissionNo": {
+            "type": "string",
+            "example": "MAT/2026/0001"
+          },
+          "className": {
+            "type": "string",
+            "nullable": true,
+            "example": "5",
+            "description": "Class in the fee's academic year; null when not enrolled."
+          },
+          "academicYearName": {
+            "type": "string",
+            "example": "2026-27"
+          },
+          "paidToDate": {
+            "type": "string",
+            "example": "20000.00",
+            "description": "Paid on this fee including this payment, as of this payment."
+          },
+          "balance": {
+            "type": "string",
+            "example": "25000.00",
+            "description": "Remaining on this fee right after this payment."
+          },
+          "voidedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Set when voided. Show the receipt as Voided."
+          }
+        },
+        "required": [
+          "id",
+          "receiptNo",
+          "amount",
+          "method",
+          "referenceNo",
+          "paidOn",
+          "recordedByName",
+          "feeId",
+          "feeTitle",
+          "feeType",
+          "feeTotalAmount",
+          "studentId",
+          "studentName",
+          "admissionNo",
+          "className",
+          "academicYearName",
+          "paidToDate",
+          "balance",
+          "voidedAt"
+        ]
+      },
+      "MyPaymentAccountDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Tuition account"
+          },
+          "feeTypes": {
+            "type": "array",
+            "description": "Fee types paid into this account. Empty when the admin moved them all elsewhere.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "TUITION",
+                "HOSTEL",
+                "SCHOOL",
+                "ACTIVITY",
+                "WASHING",
+                "DRESS",
+                "STATIONERY"
+              ]
+            }
+          },
+          "upiId": {
+            "type": "string",
+            "nullable": true,
+            "example": "school@okhdfc"
+          },
+          "payeeName": {
+            "type": "string",
+            "nullable": true
+          },
+          "qrUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "Signed GET URL for the QR image (300 s), when qrKey is set."
+          },
+          "bankAccountName": {
+            "type": "string",
+            "nullable": true
+          },
+          "bankAccountNo": {
+            "type": "string",
+            "nullable": true
+          },
+          "ifsc": {
+            "type": "string",
+            "nullable": true,
+            "example": "HDFC0001234"
+          },
+          "bankBranch": {
+            "type": "string",
+            "nullable": true
+          },
+          "instructions": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "feeTypes",
+          "upiId",
+          "payeeName",
+          "qrUrl",
+          "bankAccountName",
+          "bankAccountNo",
+          "ifsc",
+          "bankBranch",
+          "instructions"
         ]
       },
       "CreatePaymentSubmissionDto": {
@@ -10156,6 +11576,11 @@
               "UPI",
               "BANK_TRANSFER"
             ]
+          },
+          "paymentAccountId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Account the student paid into, from GET /me/payment-accounts. Not checked against the fee type. 404 when missing or deleted."
           },
           "referenceNo": {
             "type": "string",
@@ -10179,6 +11604,7 @@
         "required": [
           "amount",
           "method",
+          "paymentAccountId",
           "referenceNo",
           "paidOn",
           "screenshotKey"
@@ -10221,6 +11647,15 @@
               "UPI",
               "BANK_TRANSFER"
             ]
+          },
+          "paymentAccountId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Account the student paid into."
+          },
+          "paymentAccountName": {
+            "type": "string",
+            "example": "Tuition account"
           },
           "referenceNo": {
             "type": "string",
@@ -10269,6 +11704,8 @@
           "feeType",
           "amount",
           "method",
+          "paymentAccountId",
+          "paymentAccountName",
           "referenceNo",
           "paidOn",
           "note",
@@ -10352,7 +11789,7 @@
           },
           "changedSinceLastPublish": {
             "type": "boolean",
-            "description": "True when any mark was saved after publishedAt (marks.updated_at > exams.published_at); computed in Phase 3. Always false for a draft."
+            "description": "True when any mark of an eligible student (ACTIVE or ALUMNI, not deleted) was saved after publishedAt (marks.updated_at > exams.published_at); students keep seeing the last published results until re-publish. Always false for a draft."
           },
           "createdAt": {
             "type": "string",
@@ -10578,7 +12015,7 @@
           },
           "changedSinceLastPublish": {
             "type": "boolean",
-            "description": "True when any mark was saved after publishedAt (marks.updated_at > exams.published_at); computed in Phase 3. Always false for a draft."
+            "description": "True when any mark of an eligible student (ACTIVE or ALUMNI, not deleted) was saved after publishedAt (marks.updated_at > exams.published_at); students keep seeing the last published results until re-publish. Always false for a draft."
           },
           "createdAt": {
             "type": "string",
@@ -11134,11 +12571,11 @@
           },
           "action": {
             "type": "string",
-            "example": "EXAM_PUBLISH"
+            "example": "POST /subjects"
           },
           "entityType": {
             "type": "string",
-            "example": "exam"
+            "example": "subjects"
           },
           "entityId": {
             "type": "string",
@@ -11147,6 +12584,7 @@
           },
           "changes": {
             "nullable": true,
+            "description": "Stored as { body } (the request body, secrets redacted); before/after values are not recorded.",
             "type": "object",
             "allOf": [
               {
@@ -11511,7 +12949,8 @@
           "academicYearId": {
             "type": "string",
             "format": "uuid",
-            "description": "Year the numbers are for: the query value or the current year."
+            "nullable": true,
+            "description": "Year the numbers are for: the query value or the current year; null when there is no current year (year-based numbers are then zero)."
           },
           "students": {
             "$ref": "#/components/schemas/StudentCountsDto"
@@ -11769,71 +13208,11 @@
           "fullName": {
             "type": "string",
             "example": "Asha Verma"
-          },
-          "phone": {
-            "type": "string",
-            "example": "9876543210"
           }
         },
         "required": [
           "email",
           "fullName"
-        ]
-      },
-      "InvitationDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "email": {
-            "type": "string",
-            "example": "guardian@example.com"
-          },
-          "role": {
-            "type": "string",
-            "enum": [
-              "ADMIN",
-              "STUDENT"
-            ]
-          },
-          "fullName": {
-            "type": "string",
-            "example": "Asha Verma"
-          },
-          "studentId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "PENDING",
-              "ACCEPTED",
-              "EXPIRED",
-              "REVOKED"
-            ]
-          },
-          "expiresAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "email",
-          "role",
-          "fullName",
-          "studentId",
-          "status",
-          "expiresAt",
-          "createdAt"
         ]
       },
       "UpdateAdminDto": {
@@ -11859,76 +13238,6 @@
         },
         "required": [
           "isActive"
-        ]
-      },
-      "CreateInvitationItemDto": {
-        "type": "object",
-        "properties": {
-          "studentId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "The invite is sent to this student guardian email."
-          }
-        },
-        "required": [
-          "studentId"
-        ]
-      },
-      "CreateInvitationsDto": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "minItems": 1,
-            "maxItems": 500,
-            "description": "1-500 items. All-or-nothing: one invalid item rejects the whole request with per-item errors (e.g. items.3.field).",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreateInvitationItemDto"
-            }
-          }
-        },
-        "required": [
-          "items"
-        ]
-      },
-      "InvitationsResultDto": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/InvitationDto"
-            }
-          }
-        },
-        "required": [
-          "items"
-        ]
-      },
-      "PaginatedInvitationsDto": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/InvitationDto"
-            }
-          },
-          "page": {
-            "type": "number"
-          },
-          "limit": {
-            "type": "number"
-          },
-          "total": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "items",
-          "page",
-          "limit",
-          "total"
         ]
       }
     }

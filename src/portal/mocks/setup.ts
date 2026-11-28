@@ -16,11 +16,17 @@ export const years: Schemas['AcademicYearDto'][] = [
   { id: id(), name: '2026-27', startDate: '2026-06-08', endDate: '2027-04-30', isCurrent: true },
 ]
 
-export const classes: Schemas['ClassDto'][] = years
-  .slice(1)
-  .flatMap((y) =>
-    [4, 5, 6, 7, 8, 9, 10].map((n) => ({ id: id(), academicYearId: y.id, standard: `Std ${n}` }))
-  )
+// The mock doesn't count enrollments per class (students.ts imports this file); 0 is fine for dev.
+const NO_COUNTS = { studentCount: 0, hostelCount: 0 }
+
+export const classes: Schemas['ClassDto'][] = years.slice(1).flatMap((y) =>
+  [4, 5, 6, 7, 8, 9, 10].map((n) => ({
+    id: id(),
+    academicYearId: y.id,
+    standard: `Std ${n}`,
+    ...NO_COUNTS,
+  }))
+)
 // Pretend the current year's classes have students, so deleting them shows the 409 path.
 const classesWithStudents = new Set(
   classes.filter((c) => c.academicYearId === years[2].id).map((c) => c.id)
@@ -138,7 +144,7 @@ export const setupHandlers = [
       classes.some((c) => c.academicYearId === i.academicYearId && c.standard === i.standard)
     )
     if (dupe) return error(409, `${dupe.standard} already exists in this year`)
-    const created = items.map((i) => ({ id: id(), ...i }))
+    const created = items.map((i) => ({ id: id(), ...i, ...NO_COUNTS }))
     classes.push(...created)
     return HttpResponse.json({ items: created }, { status: 201 })
   }),
@@ -151,7 +157,12 @@ export const setupHandlers = [
       if (classes.some((x) => x.academicYearId === b.toAcademicYearId && x.standard === c.standard))
         skipped++
       else {
-        classes.push({ id: id(), academicYearId: b.toAcademicYearId, standard: c.standard })
+        classes.push({
+          id: id(),
+          academicYearId: b.toAcademicYearId,
+          standard: c.standard,
+          ...NO_COUNTS,
+        })
         created++
       }
     }

@@ -9,40 +9,75 @@ import { Btn, PageHeader, errorText } from '../ui'
 type Log = Schemas['ActivityLogDto']
 const LIMIT = 50
 
-// The API doesn't list entity types; these are the records the admin panel changes.
-const AREAS: Record<string, string> = {
-  student: 'Students',
-  enrollment: 'Enrollments',
-  document: 'Documents',
-  fee: 'Fees',
-  payment: 'Payments',
-  payment_submission: 'Payment requests',
-  payment_settings: 'Payment details',
-  exam: 'Exams',
-  marks: 'Marks',
-  user: 'Users',
-  invitation: 'Invites',
-  academic_year: 'Academic years',
-  class: 'Classes',
-  subject: 'Subjects',
-  grade_scale: 'Grade scales',
+// The API logs each change as `action: "POST /students/:id/documents"` and
+// `entityType: "students"` (the first route segment). These are the areas the admin panel
+// changes; the keys are sent as the entityType filter, so they must match the API exactly.
+const AREAS: Record<string, [plural: string, singular: string]> = {
+  students: ['Students', 'Student'],
+  fees: ['Fees', 'Fee'],
+  payments: ['Payments', 'Payment'],
+  'payment-submissions': ['Payment requests', 'Payment request'],
+  'payment-accounts': ['Payment accounts', 'Payment account'],
+  exams: ['Exams', 'Exam'],
+  admins: ['Admins', 'Admin'],
+  invitations: ['Invites', 'Invite'],
+  'academic-years': ['Academic years', 'Academic year'],
+  classes: ['Classes', 'Class'],
+  subjects: ['Subjects', 'Subject'],
+  'grade-scales': ['Grade scales', 'Grade scale'],
+  me: ['Own account', 'Own account'],
 }
 const AREA_TONE: Record<string, string> = {
-  fee: 'bg-green-100 text-green-800',
-  payment: 'bg-green-100 text-green-800',
-  payment_submission: 'bg-green-100 text-green-800',
-  payment_settings: 'bg-green-100 text-green-800',
-  exam: 'bg-violet-100 text-violet-800',
-  marks: 'bg-violet-100 text-violet-800',
-  user: 'bg-pink-100 text-pink-800',
-  invitation: 'bg-pink-100 text-pink-800',
+  fees: 'bg-green-100 text-green-800',
+  payments: 'bg-green-100 text-green-800',
+  'payment-submissions': 'bg-green-100 text-green-800',
+  'payment-accounts': 'bg-green-100 text-green-800',
+  exams: 'bg-violet-100 text-violet-800',
+  admins: 'bg-pink-100 text-pink-800',
+  invitations: 'bg-pink-100 text-pink-800',
 }
 
-const norm = (t: string) => t.toLowerCase().replace(/[\s-]/g, '_')
-const areaLabel = (t: string) =>
-  AREAS[norm(t)] ?? t.replace(/[_.-]/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
-/** "fee.payment_voided" → "payment voided". Good enough until the API sends readable labels. */
-const actionText = (a: string) => a.split('.').pop()!.replace(/[_-]/g, ' ').toLowerCase()
+const pretty = (t: string) => t.replace(/[_.-]/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
+const areaLabel = (t: string) => AREAS[t]?.[0] ?? pretty(t)
+const areaSingular = (t: string) => AREAS[t]?.[1] ?? pretty(t)
+
+// What the last fixed route segment means, e.g. "POST /payments/:id/void" → "voided".
+const DID: Record<string, string> = {
+  void: 'voided',
+  approve: 'approved',
+  decline: 'declined',
+  publish: 'published',
+  unpublish: 'unpublished',
+  restore: 'restored',
+  copy: 'copied',
+  promote: 'promoted',
+  resend: 'resent',
+  revoke: 'revoked',
+  status: 'changed the status',
+  'set-current': 'set as current',
+  marks: 'saved marks',
+  subjects: 'updated the papers',
+  documents: 'added a document',
+  photo: 'updated the photo',
+  enrollments: 'enrolled',
+  fees: 'billed',
+  'cash-payments': 'recorded cash',
+  'payment-submissions': 'sent payment proof',
+  password: 'changed the password',
+}
+const VERB: Record<string, string> = {
+  POST: 'created',
+  PUT: 'updated',
+  PATCH: 'updated',
+  DELETE: 'deleted',
+}
+/** "POST /payments/:id/void" → "voided"; "PATCH /students/:id" → "updated". */
+function actionText(a: string) {
+  const [method = '', route = ''] = a.split(' ')
+  const fixed = route.split('/').filter((s) => s && !s.startsWith(':'))
+  if (method === 'DELETE') return 'deleted'
+  return (fixed.length > 1 && DID[fixed[fixed.length - 1]]) || VERB[method] || a.toLowerCase()
+}
 const time = (iso: string) =>
   new Date(iso).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })
 // Local calendar day (en-CA gives YYYY-MM-DD). iso.slice(0, 10) is the UTC day, so a 01:15 IST entry landed under "Yesterday".
@@ -83,9 +118,35 @@ const label = (k: string) =>
 
 function Changes({ changes }: { changes: Log['changes'] }) {
   const c = changes as {
+    body?: Record<string, unknown> | null
     before?: Record<string, unknown> | null
     after?: Record<string, unknown> | null
   } | null
+  // The API stores what was sent ({ body }, secrets redacted), not before/after values.
+  if (c?.body && typeof c.body === 'object') {
+    const sent = Object.entries(c.body)
+    if (!sent.length) return <p className="text-muted text-[13px]">No details were sent.</p>
+    return (
+      <div className="overflow-x-auto rounded-xl border border-blue-100 bg-white">
+        <table className="w-full text-[13px]">
+          <thead>
+            <tr className="text-muted text-left text-[11px] tracking-wider uppercase">
+              <th className="px-3 py-2 font-semibold">Field</th>
+              <th className="px-3 py-2 font-semibold">Value sent</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sent.map(([k, v]) => (
+              <tr key={k} className="border-t border-slate-100">
+                <td className="text-muted px-3 py-2">{label(k)}</td>
+                <td className="text-heading px-3 py-2 font-medium break-all">{show(v)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
   const keys = [
     ...new Set([...Object.keys(c?.before ?? {}), ...Object.keys(c?.after ?? {})]),
   ].filter((k) => JSON.stringify(c?.before?.[k]) !== JSON.stringify(c?.after?.[k]))
@@ -193,7 +254,7 @@ export function Activity() {
               <option value="">All areas</option>
               {Object.entries(AREAS).map(([k, v]) => (
                 <option key={k} value={k}>
-                  {v}
+                  {v[0]}
                 </option>
               ))}
             </Select>
@@ -256,7 +317,7 @@ export function Activity() {
               {list.map((l) => {
                 const expanded = open === l.id
                 const hasChanges = !!l.changes
-                const tone = AREA_TONE[norm(l.entityType)] ?? 'bg-blue-100 text-blue-800'
+                const tone = AREA_TONE[l.entityType] ?? 'bg-blue-100 text-blue-800'
                 return (
                   <li
                     key={l.id}
@@ -276,10 +337,7 @@ export function Activity() {
                           <b className="text-heading">{l.actorName ?? 'System'}</b>{' '}
                           {actionText(l.action)}
                           {l.entityId && (
-                            <span className="text-muted">
-                              {' '}
-                              · {areaLabel(l.entityType).replace(/s$/, '')}
-                            </span>
+                            <span className="text-muted"> · {areaSingular(l.entityType)}</span>
                           )}
                           <span
                             className={`ml-2 inline-block rounded-md px-2 py-0.5 align-middle text-[11px] font-semibold ${tone}`}

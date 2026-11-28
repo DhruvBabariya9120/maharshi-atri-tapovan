@@ -174,7 +174,7 @@ const documents: Schemas['StudentDocumentDto'][] = [
   },
 ]
 
-// Stand-in for object storage: presigned PUTs land here, signed GETs become blob URLs.
+// Stand-in for object storage: presigned form POSTs land here, signed GETs become blob URLs.
 export const storage = new Map<string, Blob>()
 export const photoKeys = new Map<string, string>()
 const docKeys = new Map<string, string>()
@@ -372,7 +372,7 @@ export const studentHandlers = [
       if (sendInvite) invite(s.guardianEmail, 'STUDENT', `${s.firstName} ${s.lastName}`, s.id)
       return s
     })
-    return HttpResponse.json({ items: created }, { status: 201 })
+    return HttpResponse.json({ items: created, inviteFailed: [] }, { status: 201 })
   }),
   http.get('/api/v1/students/:id', ({ params }) => {
     const s = students.find((x) => x.id === params.id)
@@ -405,18 +405,22 @@ export const studentHandlers = [
     const key = `${b.purpose.toLowerCase()}/${id()}`
     return HttpResponse.json(
       {
+        // Same shape as the real API (a Cloudinary signed form POST).
         uploadUrl: `/mock-storage/${key}`,
+        method: 'POST',
+        fields: { public_id: key, timestamp: String(Math.floor(Date.now() / 1000)) },
         key,
         expiresAt: hoursFromNow(0.25),
-        headers: { 'Content-Type': b.contentType },
       },
       { status: 201 }
     )
   }),
-  http.put('/mock-storage/*', async ({ request }) => {
+  http.post('/mock-storage/*', async ({ request }) => {
     await delay(600)
-    storage.set(new URL(request.url).pathname.replace('/mock-storage/', ''), await request.blob())
-    return new HttpResponse(null, { status: 200 })
+    const file = (await request.formData()).get('file')
+    if (!(file instanceof Blob)) return error(400, 'Missing file')
+    storage.set(new URL(request.url).pathname.replace('/mock-storage/', ''), file)
+    return HttpResponse.json({ public_id: 'mock' })
   }),
   http.put('/api/v1/students/:id/photo', async ({ params, request }) => {
     const s = students.find((x) => x.id === params.id)
@@ -514,7 +518,7 @@ export const studentHandlers = [
       type: b.type,
       title: b.title,
       mimeType: b.mimeType,
-      sizeBytes: b.sizeBytes,
+      sizeBytes: storage.get(b.key)!.size,
       uploadedBy: id(),
       createdAt: now(),
     }
@@ -587,7 +591,7 @@ export const studentHandlers = [
       const s = students.find((x) => x.id === i.studentId)!
       return invite(s.guardianEmail, 'STUDENT', `${s.firstName} ${s.lastName}`, s.id)
     })
-    return HttpResponse.json({ items: created }, { status: 201 })
+    return HttpResponse.json({ items: created, failed: [] }, { status: 201 })
   }),
   http.delete('/api/v1/invitations/:id', ({ params }) => {
     const i = invitations.find((x) => x.id === params.id)

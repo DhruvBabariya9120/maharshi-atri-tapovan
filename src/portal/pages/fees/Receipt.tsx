@@ -4,9 +4,7 @@ import { ArrowLeft, Loader2, Printer } from 'lucide-react'
 import logo from '../../../assets/logo-256.png'
 import { contact, site } from '../../../data/site'
 import { api, type Schemas } from '../../api/client'
-import { useClasses, useYears } from '../../api/lookups'
 import { Btn, errorText, fmtDate } from '../../ui'
-import { fullName } from '../students/common'
 import { FEE_TYPES, METHODS, amountInWords, inr, type FeeType, type Method } from './common'
 
 type ReceiptData = {
@@ -28,93 +26,54 @@ type ReceiptData = {
   feeRemaining: string
 }
 
-/**
- * There's no single-receipt endpoint yet, so the page is assembled from the student,
- * their fee summary (which lists payment lines) and, for admins, the fee's payments.
- */
+/** The API's receipt (one call, class and year included) in the shape the page prints. */
+const toReceipt = (r: Schemas['ReceiptDto'] & { voidReason?: string | null }): ReceiptData => ({
+  receiptNo: r.receiptNo,
+  paidOn: r.paidOn,
+  amount: r.amount,
+  method: r.method,
+  referenceNo: r.referenceNo,
+  voidedAt: r.voidedAt,
+  voidReason: r.voidReason,
+  studentName: r.studentName,
+  admissionNo: r.admissionNo,
+  className: r.className ?? undefined,
+  yearName: r.academicYearName,
+  feeTitle: r.feeTitle,
+  feeType: r.feeType,
+  feeTotal: r.feeTotalAmount,
+  feePaid: r.paidToDate,
+  feeRemaining: r.balance,
+})
+
 export function AdminReceipt() {
   const { id = '', paymentId = '' } = useParams()
-  const years = useYears()
-  const student = useQuery({
-    queryKey: ['students', id],
-    queryFn: () => api<Schemas['StudentDto']>(`/students/${id}`),
+  const receipt = useQuery({
+    queryKey: ['payments', paymentId],
+    queryFn: () => api<Schemas['AdminReceiptDto']>(`/payments/${paymentId}`),
   })
-  const fees = useQuery({
-    queryKey: ['students', id, 'fees'],
-    queryFn: () => api<Schemas['AdminStudentFeeSummaryDto']>(`/students/${id}/fees`),
-  })
-  const fee = fees.data?.items.find((f) => f.payments.some((p) => p.id === paymentId))
-  const payments = useQuery({
-    queryKey: ['fees', fee?.id, 'payments'],
-    queryFn: () => api<Schemas['FeePaymentDto'][]>(`/fees/${fee!.id}/payments`),
-    enabled: !!fee,
-  })
-  const enrollments = useQuery({
-    queryKey: ['students', id, 'enrollments'],
-    queryFn: () => api<Schemas['EnrollmentDto'][]>(`/students/${id}/enrollments`),
-  })
-  const classes = useClasses()
-  const payment = payments.data?.find((p) => p.id === paymentId)
-  const enrollment = enrollments.data?.find((e) => e.academicYearId === fee?.academicYearId)
-
-  const error = student.error ?? fees.error ?? payments.error
-  const notFound = fees.data && !fee
-  const data: ReceiptData | null =
-    student.data && fee && payment
-      ? {
-          ...payment,
-          studentName: fullName(student.data),
-          admissionNo: student.data.admissionNo,
-          className: enrollment ? classes.nameOf(enrollment.classId) : undefined,
-          yearName: years.nameOf(fee.academicYearId),
-          feeTitle: fee.title,
-          feeType: fee.feeType,
-          feeTotal: fee.totalAmount,
-          feePaid: fee.paidAmount,
-          feeRemaining: fee.remainingAmount,
-        }
-      : null
   return (
     <ReceiptPage
       back={`/admin/students/${id}?tab=fees`}
       backLabel="Back to fees"
-      data={data}
-      error={error ?? (notFound ? new Error('Receipt not found') : null)}
+      data={receipt.data ? toReceipt(receipt.data) : null}
+      error={receipt.error}
     />
   )
 }
 
 export function MyReceipt() {
   const { paymentId = '' } = useParams()
-  const years = useYears()
-  const me = useQuery({ queryKey: ['me'], queryFn: () => api<Schemas['MeDto']>('/me') })
-  const fees = useQuery({
-    queryKey: ['me', 'fees'],
-    queryFn: () => api<Schemas['StudentFeeSummaryDto']>('/me/fees'),
+  const receipt = useQuery({
+    queryKey: ['me', 'payments', paymentId],
+    queryFn: () => api<Schemas['ReceiptDto']>(`/me/payments/${paymentId}`),
   })
-  const fee = fees.data?.items.find((f) => f.payments.some((p) => p.id === paymentId))
-  const line = fee?.payments.find((p) => p.id === paymentId)
-  const st = me.data?.student
-  const data: ReceiptData | null =
-    st && fee && line
-      ? {
-          ...line,
-          studentName: fullName(st),
-          admissionNo: st.admissionNo,
-          yearName: years.nameOf(fee.academicYearId),
-          feeTitle: fee.title,
-          feeType: fee.feeType,
-          feeTotal: fee.totalAmount,
-          feePaid: fee.paidAmount,
-          feeRemaining: fee.remainingAmount,
-        }
-      : null
   return (
     <ReceiptPage
       back="/me/fees"
       backLabel="Back to my fees"
-      data={data}
-      error={me.error ?? fees.error ?? (fees.data && !fee ? new Error('Receipt not found') : null)}
+      data={receipt.data ? toReceipt(receipt.data) : null}
+      error={receipt.error}
     />
   )
 }
