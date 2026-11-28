@@ -6,7 +6,7 @@ import { Loader2, Plus, X } from 'lucide-react'
 import { FieldWrap, Input, Select } from '../../../components/ui/Field'
 import { api, type Schemas } from '../../api/client'
 import { useClasses, useYears } from '../../api/lookups'
-import { Btn, PageHeader, errorText } from '../../ui'
+import { Btn, NoAcademicYear, PageHeader, errorText } from '../../ui'
 import { EXAM_TYPES, type ExamType } from './common'
 
 type Detail = Schemas['ExamDetailDto']
@@ -159,6 +159,18 @@ function Body({ exam }: { exam?: Detail }) {
   const seg = (on: boolean) =>
     `min-h-11 rounded-full border px-5 text-sm font-medium ${on ? 'border-brand bg-tint-blue text-brand' : 'border-border text-content bg-white'}`
   const activeSubjects = subjects.data?.items ?? []
+
+  // A new exam goes into the current year (an existing one carries its own).
+  if (!exam && !years.isPending && !years.current)
+    return (
+      <div className="flex flex-col gap-5">
+        <PageHeader title="Create exam" />
+        <NoAcademicYear error={years.error}>
+          Exams are created for a class in an academic year. Add the year, its classes and subjects
+          first.
+        </NoAcademicYear>
+      </div>
+    )
 
   return (
     <div className="flex flex-col gap-5">

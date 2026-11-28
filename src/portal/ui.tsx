@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { AlertCircle, Inbox, Loader2 } from 'lucide-react'
 import { ApiError } from './api/client'
 
@@ -88,6 +89,29 @@ export function Pill({ tone, children }: { tone: keyof typeof tones; children: R
       <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />
       {children}
     </span>
+  )
+}
+
+/**
+ * In place of a page that works on the current academic year, while none exists. useYears
+ * falls back to the first year, so this only shows before the first year is added, or when
+ * the years couldn't be loaded.
+ */
+export function NoAcademicYear({ error, children }: { error?: unknown; children: ReactNode }) {
+  if (error)
+    return (
+      <p className="text-sm text-red-700">
+        {errorText(error, "Couldn't load the academic years. Try again.")}
+      </p>
+    )
+  return (
+    <div className="dt flex flex-col items-start gap-2 p-6 text-sm">
+      <b className="text-heading">Add an academic year first.</b>
+      <span className="text-muted">{children}</span>
+      <Link to="/admin/setup/years" className="text-brand font-medium">
+        Go to academic years
+      </Link>
+    </div>
   )
 }
 

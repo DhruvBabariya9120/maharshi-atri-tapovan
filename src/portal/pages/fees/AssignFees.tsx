@@ -6,7 +6,7 @@ import { Search } from 'lucide-react'
 import { FieldWrap, Input, Select } from '../../../components/ui/Field'
 import { api, type Schemas } from '../../api/client'
 import { useClasses, useYears } from '../../api/lookups'
-import { Btn, PageHeader, errorText } from '../../ui'
+import { Btn, NoAcademicYear, PageHeader, errorText } from '../../ui'
 import { StudentAvatar, fullName } from '../students/common'
 import { FEE_TYPES, inr, type FeeType } from './common'
 
@@ -105,6 +105,17 @@ export function AssignFees() {
 
   const seg = (on: boolean) =>
     `inline-flex min-h-11 items-center rounded-full border px-5 text-sm font-medium ${on ? 'border-brand bg-tint-blue text-brand' : 'border-border text-content bg-white'}`
+
+  // Bills are created in the current year; without one the button just stays disabled.
+  if (!years.isPending && !years.current)
+    return (
+      <div className="flex flex-col gap-5">
+        <PageHeader title="Assign fees" />
+        <NoAcademicYear error={years.error}>
+          Bills are created in the current academic year. Add the year and its classes first.
+        </NoAcademicYear>
+      </div>
+    )
 
   return (
     <div className="flex flex-col gap-5">
