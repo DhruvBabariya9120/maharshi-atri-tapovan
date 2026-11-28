@@ -71,11 +71,23 @@ export function PayFee() {
     queryKey: ['me', 'fees'],
     queryFn: () => api<Schemas['StudentFeeSummaryDto']>('/me/fees'),
   })
-  const settings = useQuery({
-    queryKey: ['me', 'payment-settings'],
-    queryFn: () => api<Schemas['PaymentSettingsDto']>('/me/payment-settings'),
+  const accounts = useQuery({
+    queryKey: ['me', 'payment-accounts'],
+    queryFn: () => api<Schemas['MyPaymentAccountDto'][]>('/me/payment-accounts'),
+  })
+  const sent = useQuery({
+    queryKey: ['me', 'payment-submissions'],
+    queryFn: () => api<Schemas['MyPaymentSubmissionDto'][]>('/me/payment-submissions'),
   })
   const fee = fees.data?.items.find((f) => f.id === feeId)
+  // Each fee type is collected by at most one account; none means "pay cash at the office".
+  const p = fee && accounts.data?.find((a) => a.feeTypes.includes(fee.feeType))
+  // The API counts proofs still being checked against the balance, so the most a student
+  // can claim now is the remaining amount minus those.
+  const pending = (sent.data ?? [])
+    .filter((s) => s.studentFeeId === feeId && s.status === 'PENDING')
+    .reduce((sum, s) => sum + Number(s.amount), 0)
+  const payable = fee ? Math.max(0, Number(fee.remainingAmount) - pending).toFixed(2) : '0.00'
 
   const [method, setMethod] = useState<SubMethod>('UPI')
   // null = untouched, so the field starts at the remaining balance but can still be emptied
@@ -92,8 +104,9 @@ export function PayFee() {
       return api<Schemas['MyPaymentSubmissionDto']>(`/me/fees/${feeId}/payment-submissions`, {
         method: 'POST',
         body: {
-          amount: Number(amount ?? fee!.remainingAmount).toFixed(2),
+          amount: Number(amount ?? payable).toFixed(2),
           method,
+          paymentAccountId: p!.id,
           referenceNo: utr.trim(),
           paidOn,
           screenshotKey,
@@ -111,7 +124,7 @@ export function PayFee() {
     onError: (err) => toast.error(errorText(err, (err as Error).message)),
   })
 
-  if (fees.isPending || settings.isPending)
+  if (fees.isPending || accounts.isPending || sent.isPending)
     return (
       <div className="grid place-items-center py-20">
         <Loader2 className="text-brand h-8 w-8 animate-spin" />
@@ -128,14 +141,15 @@ export function PayFee() {
         </Link>
       </div>
     )
-  const p = settings.data
   const admissionNo = me.data?.student?.admissionNo
-  const amt = amount ?? Number(fee.remainingAmount).toFixed(2)
+  const amt = amount ?? payable
   const amountError =
     !MONEY.test(amt) || Number(amt) <= 0
       ? 'Enter the amount you paid'
-      : Number(amt) > Number(fee.remainingAmount)
-        ? `At most ${inr(fee.remainingAmount)}`
+      : Number(amt) > Number(payable)
+        ? pending
+          ? `At most ${inr(payable)}: ${inr(pending)} you sent earlier is still being checked`
+          : `At most ${inr(payable)}`
         : undefined
   const utrError =
     utr && !/^[A-Za-z0-9 -]{6,30}$/.test(utr.trim())
@@ -181,12 +195,21 @@ export function PayFee() {
       <div className="flex flex-wrap items-start gap-5">
         <div className="flex min-w-0 flex-[1_1_380px]">
           <Step n={1} title="Pay the school">
-            {settings.isError || (!p?.upiId && !p?.bankAccountNo) ? (
+            {accounts.isError ? (
               <p className="rounded-xl bg-amber-50 px-3.5 py-3 text-sm text-amber-800">
-                The school hasn't added its payment details yet. Pay at the school office for now.
+                {errorText(accounts.error, "We couldn't load the school's payment details.")} Try
+                again, or pay at the school office.
+              </p>
+            ) : !p ? (
+              <p className="rounded-xl bg-amber-50 px-3.5 py-3 text-sm text-amber-800">
+                This fee is paid in cash at the school office. The school hasn't set up online
+                payment for it.
               </p>
             ) : (
               <>
+                <span className="text-muted text-xs">
+                  Paying into <b className="text-heading">{p.name}</b>
+                </span>
                 {(p.qrUrl || p.upiId) && (
                   <div className="flex flex-wrap items-center gap-5">
                     <div className="grid h-44 w-44 shrink-0 place-items-center overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -203,7 +226,7 @@ export function PayFee() {
                     <div className="flex min-w-40 flex-1 flex-col gap-1.5 text-sm">
                       <b className="text-heading">Scan with any UPI app</b>
                       <span>
-                        Pay <b className="text-heading">{inr(fee.remainingAmount)}</b> or less
+                        Pay <b className="text-heading">{inr(payable)}</b> or less
                         {admissionNo && (
                           <>
                             , and write <b className="text-heading font-mono">{admissionNo}</b> in
@@ -245,128 +268,142 @@ export function PayFee() {
           </Step>
         </div>
 
-        <form
-          noValidate
-          className="flex min-w-0 flex-[1_1_420px]"
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (ready && !submit.isPending) submit.mutate()
-          }}
-        >
-          <Step n={2} title="Tell us you paid">
-            <fieldset className="flex flex-col gap-2">
-              <legend className="text-heading mb-2 text-sm font-medium">How did you pay?</legend>
-              <div className="flex gap-2">
-                {(['UPI', 'BANK_TRANSFER'] as const).map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    aria-pressed={method === m}
-                    onClick={() => setMethod(m)}
-                    className={`min-h-11 rounded-full border px-5 text-sm font-medium ${method === m ? 'border-brand bg-tint-blue text-brand' : 'border-border text-content bg-white'}`}
-                  >
-                    {m === 'UPI' ? 'UPI' : 'Bank transfer'}
-                  </button>
-                ))}
+        {p && Number(payable) <= 0 && (
+          <div className="dt flex min-w-0 flex-[1_1_420px] flex-col gap-2 p-6 text-sm">
+            <b className="font-display text-heading text-lg">Already being checked</b>
+            <span>
+              {inr(pending)} you sent for this fee is still being checked by the office. You can
+              send another payment once it's approved or declined.
+            </span>
+            <Link to="/me/fees" className="text-brand font-medium">
+              Back to my fees
+            </Link>
+          </div>
+        )}
+        {p && Number(payable) > 0 && (
+          <form
+            noValidate
+            className="flex min-w-0 flex-[1_1_420px]"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (ready && !submit.isPending) submit.mutate()
+            }}
+          >
+            <Step n={2} title="Tell us you paid">
+              <fieldset className="flex flex-col gap-2">
+                <legend className="text-heading mb-2 text-sm font-medium">How did you pay?</legend>
+                <div className="flex gap-2">
+                  {(['UPI', 'BANK_TRANSFER'] as const).map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      aria-pressed={method === m}
+                      onClick={() => setMethod(m)}
+                      className={`min-h-11 rounded-full border px-5 text-sm font-medium ${method === m ? 'border-brand bg-tint-blue text-brand' : 'border-border text-content bg-white'}`}
+                    >
+                      {m === 'UPI' ? 'UPI' : 'Bank transfer'}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FieldWrap label="Amount paid (₹)" htmlFor="pf-amount" error={amountError}>
+                  <Input
+                    id="pf-amount"
+                    inputMode="decimal"
+                    value={amt}
+                    onChange={(e) => setAmount(e.target.value.replace(/[,\s₹]/g, ''))}
+                    className="font-semibold tabular-nums"
+                  />
+                </FieldWrap>
+                <FieldWrap
+                  label="Paid on"
+                  htmlFor="pf-date"
+                  error={paidOn > today() ? "Can't be in the future" : undefined}
+                >
+                  <Input
+                    id="pf-date"
+                    type="date"
+                    max={today()}
+                    value={paidOn}
+                    onChange={(e) => setPaidOn(e.target.value)}
+                  />
+                </FieldWrap>
               </div>
-            </fieldset>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FieldWrap label="Amount paid (₹)" htmlFor="pf-amount" error={amountError}>
-                <Input
-                  id="pf-amount"
-                  inputMode="decimal"
-                  value={amt}
-                  onChange={(e) => setAmount(e.target.value.replace(/[,\s₹]/g, ''))}
-                  className="font-semibold tabular-nums"
-                />
-              </FieldWrap>
               <FieldWrap
-                label="Paid on"
-                htmlFor="pf-date"
-                error={paidOn > today() ? "Can't be in the future" : undefined}
+                label={method === 'UPI' ? 'UTR / transaction ID' : 'Bank reference (UTR)'}
+                htmlFor="pf-utr"
+                required
+                hint={
+                  method === 'UPI'
+                    ? "The 12-digit number in your UPI app's payment details."
+                    : 'Shown in your bank app or SMS after the transfer.'
+                }
+                error={utrError}
               >
                 <Input
-                  id="pf-date"
-                  type="date"
-                  max={today()}
-                  value={paidOn}
-                  onChange={(e) => setPaidOn(e.target.value)}
+                  id="pf-utr"
+                  value={utr}
+                  onChange={(e) => setUtr(e.target.value)}
+                  className="font-mono"
                 />
               </FieldWrap>
-            </div>
-            <FieldWrap
-              label={method === 'UPI' ? 'UTR / transaction ID' : 'Bank reference (UTR)'}
-              htmlFor="pf-utr"
-              required
-              hint={
-                method === 'UPI'
-                  ? "The 12-digit number in your UPI app's payment details."
-                  : 'Shown in your bank app or SMS after the transfer.'
-              }
-              error={utrError}
-            >
-              <Input
-                id="pf-utr"
-                value={utr}
-                onChange={(e) => setUtr(e.target.value)}
-                className="font-mono"
-              />
-            </FieldWrap>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-heading text-sm font-medium">
-                Screenshot of the payment <span className="text-accent-strong">*</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => shotInput.current?.click()}
-                className={`flex items-center gap-3 rounded-xl border p-3 text-left ${shot ? 'border-green-200 bg-green-50' : 'bg-tint-blue-soft border-dashed border-blue-300'}`}
-              >
-                <ImageUp
-                  className={`h-6 w-6 shrink-0 ${shot ? 'text-green-700' : 'text-brand'}`}
-                  aria-hidden
-                />
-                <span className="flex min-w-0 flex-col text-[13px]">
-                  <b className="text-heading truncate">
-                    {shot ? shot.name : 'Choose the screenshot'}
-                  </b>
-                  <span className={shot ? 'text-green-800' : 'text-muted'}>
-                    {shot
-                      ? `${Math.max(1, Math.round(shot.size / 1024))} KB · ready to send · tap to change`
-                      : 'JPG, PNG or WebP, up to 5 MB'}
-                  </span>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-heading text-sm font-medium">
+                  Screenshot of the payment <span className="text-accent-strong">*</span>
                 </span>
-              </button>
-              <input
-                ref={shotInput}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0]
-                  e.target.value = ''
-                  if (!f) return
-                  const problem = checkFile(f, 'PAYMENT_SCREENSHOT')
-                  if (problem) toast.error(problem)
-                  else setShot(f)
-                }}
-              />
-            </div>
-            <FieldWrap
-              label="Note for the office"
-              htmlFor="pf-note"
-              hint="Optional, e.g. paid from father's account"
-            >
-              <Input id="pf-note" value={note} onChange={(e) => setNote(e.target.value)} />
-            </FieldWrap>
-            <Btn type="submit" busy={submit.isPending} disabled={!ready} className="min-h-12">
-              Send for checking
-            </Btn>
-            <p className="text-muted text-[13px]">
-              The office checks it against the bank statement, usually within 2 working days. Your
-              balance updates once it's approved.
-            </p>
-          </Step>
-        </form>
+                <button
+                  type="button"
+                  onClick={() => shotInput.current?.click()}
+                  className={`flex items-center gap-3 rounded-xl border p-3 text-left ${shot ? 'border-green-200 bg-green-50' : 'bg-tint-blue-soft border-dashed border-blue-300'}`}
+                >
+                  <ImageUp
+                    className={`h-6 w-6 shrink-0 ${shot ? 'text-green-700' : 'text-brand'}`}
+                    aria-hidden
+                  />
+                  <span className="flex min-w-0 flex-col text-[13px]">
+                    <b className="text-heading truncate">
+                      {shot ? shot.name : 'Choose the screenshot'}
+                    </b>
+                    <span className={shot ? 'text-green-800' : 'text-muted'}>
+                      {shot
+                        ? `${Math.max(1, Math.round(shot.size / 1024))} KB · ready to send · tap to change`
+                        : 'JPG, PNG or WebP, up to 5 MB'}
+                    </span>
+                  </span>
+                </button>
+                <input
+                  ref={shotInput}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    e.target.value = ''
+                    if (!f) return
+                    const problem = checkFile(f, 'PAYMENT_SCREENSHOT')
+                    if (problem) toast.error(problem)
+                    else setShot(f)
+                  }}
+                />
+              </div>
+              <FieldWrap
+                label="Note for the office"
+                htmlFor="pf-note"
+                hint="Optional, e.g. paid from father's account"
+              >
+                <Input id="pf-note" value={note} onChange={(e) => setNote(e.target.value)} />
+              </FieldWrap>
+              <Btn type="submit" busy={submit.isPending} disabled={!ready} className="min-h-12">
+                Send for checking
+              </Btn>
+              <p className="text-muted text-[13px]">
+                The office checks it against the bank statement, usually within 2 working days. Your
+                balance updates once it's approved.
+              </p>
+            </Step>
+          </form>
+        )}
       </div>
     </div>
   )

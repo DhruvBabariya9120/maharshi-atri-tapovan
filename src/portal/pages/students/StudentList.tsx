@@ -67,9 +67,15 @@ export function StudentList() {
         body: { items: ids.map((studentId) => ({ studentId })) },
       }),
     onSuccess: (r) => {
-      toast.success(
-        `Sent ${r.items.length} login ${r.items.length === 1 ? 'invite' : 'invites'} to guardian emails`
-      )
+      if (r.items.length)
+        toast.success(
+          `Sent ${r.items.length} login ${r.items.length === 1 ? 'invite' : 'invites'} to guardian emails`
+        )
+      // Failed emails are revoked by the API and listed separately.
+      if (r.failed.length)
+        toast.warning(
+          `${r.failed.length} ${r.failed.length === 1 ? 'invite' : 'invites'} couldn't be emailed. Check those guardian emails and try again.`
+        )
       setSelected(new Set())
     },
     onError: (err) => toast.error(errorText(err)),

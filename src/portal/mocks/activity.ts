@@ -32,69 +32,58 @@ const log = (
   action: string,
   entityType: string,
   createdAt: string,
-  changes: Log['changes'] = null
+  // The API stores { body } (the request body); its schema still names { before, after }.
+  changes: { body: Record<string, unknown> } | null = null
 ): Log => ({
   id: String(++seq),
   ...who,
   action,
   entityType,
   entityId: mockId(),
-  changes,
+  changes: changes as Log['changes'],
   ip: '103.21.12.40',
   userAgent: UA,
   createdAt,
 })
 
 const logs: Log[] = [
-  log(ADMIN, 'marks.updated', 'marks', at(0, 11, 42), {
-    before: { marksObtained: 22, remarks: null },
-    after: { marksObtained: 24, remarks: 'Re-checked Q4' },
+  log(ADMIN, 'PUT /exams/:id/subjects/:examSubjectId/marks', 'exams', at(0, 11, 42), {
+    body: { marksObtained: 24, remarks: 'Re-checked Q4' },
   }),
-  log(CLERK, 'payment.recorded', 'payment', at(0, 11, 5), {
-    before: {},
-    after: { amount: '25000.00', method: 'UPI', receiptNo: 'RCPT-2026-001842' },
+  log(CLERK, 'POST /payments', 'payments', at(0, 11, 5), {
+    body: { amount: '25000.00', method: 'UPI', receiptNo: 'RCPT-2026-001842' },
   }),
-  log(ADMIN, 'invitation.sent', 'invitation', at(0, 10, 30)),
-  log(ADMIN, 'student.created', 'student', at(0, 10, 24), {
-    before: {},
-    after: { firstName: 'Hetvik', lastName: 'Sorathiya', admissionNo: 'MAT/2026/0418' },
+  log(ADMIN, 'POST /invitations', 'invitations', at(0, 10, 30)),
+  log(ADMIN, 'POST /students', 'students', at(0, 10, 24), {
+    body: { firstName: 'Hetvik', lastName: 'Sorathiya', admissionNo: 'MAT/2026/0418' },
   }),
-  log(ADMIN, 'grade_scale.updated', 'grade_scale', at(0, 9, 12), {
-    before: { 'B2.minPercent': 61 },
-    after: { 'B2.minPercent': 62 },
+  log(ADMIN, 'PATCH /grade-scales/:id', 'grade-scales', at(0, 9, 12), {
+    body: { 'B2.minPercent': 62 },
   }),
-  log(CLERK, 'payment.voided', 'payment', at(1, 16, 48), {
-    before: { voidedAt: null },
-    after: { voidedAt: at(1, 16, 48), voidReason: 'Entered twice' },
+  log(CLERK, 'POST /payments/:id/void', 'payments', at(1, 16, 48), {
+    body: { voidedAt: at(1, 16, 48), voidReason: 'Entered twice' },
   }),
-  log(ADMIN, 'payment_submission.approved', 'payment_submission', at(1, 15, 40), {
-    before: { status: 'PENDING' },
-    after: { status: 'APPROVED' },
+  log(ADMIN, 'POST /payment-submissions/:id/approve', 'payment-submissions', at(1, 15, 40), {
+    body: { status: 'APPROVED' },
   }),
-  log(ADMIN, 'marks.saved', 'marks', at(1, 15, 15)),
-  log(ADMIN, 'fee.class_billed', 'fee', at(1, 11, 2), {
-    before: {},
-    after: { title: 'Tuition 2026-27', totalAmount: '45000.00', created: 28 },
+  log(ADMIN, 'PUT /exams/:id/subjects/:examSubjectId/marks', 'exams', at(1, 15, 15)),
+  log(ADMIN, 'POST /classes/:id/fees', 'classes', at(1, 11, 2), {
+    body: { title: 'Tuition 2026-27', totalAmount: '45000.00', created: 28 },
   }),
-  log(ADMIN, 'exam.published', 'exam', at(5, 11, 0), {
-    before: { status: 'DRAFT' },
-    after: { status: 'PUBLISHED', publishCount: 1 },
+  log(ADMIN, 'POST /exams/:id/publish', 'exams', at(5, 11, 0), {
+    body: { status: 'PUBLISHED', publishCount: 1 },
   }),
-  log(ADMIN, 'payment_settings.updated', 'payment_settings', at(6, 9, 30), {
-    before: { upiId: 'school@okaxis' },
-    after: { upiId: 'tapovan@sbi' },
+  log(ADMIN, 'PATCH /payment-accounts/:id', 'payment-accounts', at(6, 9, 30), {
+    body: { upiId: 'tapovan@sbi' },
   }),
-  log(ADMIN, 'student.status_changed', 'student', at(9, 14, 10), {
-    before: { status: 'ACTIVE' },
-    after: { status: 'INACTIVE' },
+  log(ADMIN, 'PATCH /students/:id/status', 'students', at(9, 14, 10), {
+    body: { status: 'INACTIVE' },
   }),
-  log(ADMIN, 'class.copied', 'class', at(20, 10, 0), {
-    before: {},
-    after: { created: 7, skipped: 0 },
+  log(ADMIN, 'POST /classes/copy', 'classes', at(20, 10, 0), {
+    body: { created: 7, skipped: 0 },
   }),
-  log(ADMIN, 'academic_year.set_current', 'academic_year', at(30, 9, 0), {
-    before: { isCurrent: false },
-    after: { isCurrent: true },
+  log(ADMIN, 'POST /academic-years/:id/set-current', 'academic-years', at(30, 9, 0), {
+    body: { isCurrent: true },
   }),
 ]
 

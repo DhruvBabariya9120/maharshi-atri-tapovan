@@ -138,6 +138,49 @@ const screenshot = (utr: string, amount: number) =>
     ],
     { type: 'image/svg+xml' }
   )
+// The school's payment accounts. Each fee type is on at most one account; WASHING is on
+// none, so it shows the "pay cash at the office" path.
+type Account = Omit<Schemas['PaymentAccountDto'], 'qrUrl'> & { deleted?: boolean }
+const accounts: Account[] = [
+  {
+    id: id(),
+    name: 'School account',
+    feeTypes: ['TUITION', 'SCHOOL', 'ACTIVITY', 'DRESS', 'STATIONERY'],
+    upiId: 'tapovan@sbi',
+    payeeName: 'Maharshi Atri Tapovan',
+    qrKey: null,
+    bankAccountName: 'Maharshi Atri Tapovan Trust',
+    bankAccountNo: '30215566778',
+    ifsc: 'SBIN0001234',
+    bankBranch: 'State Bank of India, Gandhinagar',
+    instructions:
+      "Write the student's admission number in the payment note. After paying, send the screenshot with the UTR number here.",
+    createdAt: '2026-06-01T09:00:00.000Z',
+    updatedAt: '2026-06-01T09:00:00.000Z',
+  },
+  {
+    id: id(),
+    name: 'Hostel account',
+    feeTypes: ['HOSTEL'],
+    upiId: null,
+    payeeName: null,
+    qrKey: null,
+    bankAccountName: 'Tapovan Hostel Trust',
+    bankAccountNo: '918020045567123',
+    ifsc: 'UTIB0000412',
+    bankBranch: 'Axis Bank, Sector 11, Gandhinagar',
+    instructions: 'Hostel fees go to this account only. Quote the admission number in the remark.',
+    createdAt: '2026-06-01T09:00:00.000Z',
+    updatedAt: '2026-06-01T09:00:00.000Z',
+  },
+]
+const liveAccounts = () => accounts.filter((a) => !a.deleted)
+const accountFor = (t: FeeType) => liveAccounts().find((a) => a.feeTypes.includes(t))
+const accountDto = (a: Account): Schemas['PaymentAccountDto'] => ({
+  ...without(a, 'deleted'),
+  qrUrl: a.qrKey && storage.has(a.qrKey) ? URL.createObjectURL(storage.get(a.qrKey)!) : null,
+})
+
 const addSubmission = (
   fee: Fee,
   amount: number,
@@ -149,9 +192,12 @@ const addSubmission = (
 ) => {
   const key = `payment_screenshot/${id()}`
   storage.set(key, screenshot(utr, amount))
+  const acct = accountFor(fee.feeType) ?? liveAccounts()[0]
   const s: Submission = {
     id: id(),
     studentFeeId: fee.id,
+    paymentAccountId: acct.id,
+    paymentAccountName: acct.name,
     feeTitle: fee.title,
     feeType: fee.feeType,
     amount,
@@ -187,19 +233,6 @@ const addSubmission = (
     declineReason: 'UTR not found in the bank statement',
     reviewedAt: '2026-10-22T11:00:00.000Z',
   })
-}
-
-let settings = {
-  upiId: 'tapovan@sbi' as string | null,
-  payeeName: 'Maharshi Atri Tapovan' as string | null,
-  qrKey: null as string | null,
-  bankAccountName: 'Maharshi Atri Tapovan Trust' as string | null,
-  bankAccountNo: '30215566778' as string | null,
-  ifsc: 'SBIN0001234' as string | null,
-  bankBranch: 'State Bank of India, Gandhinagar' as string | null,
-  instructions:
-    "Write the student's admission number in the payment note. After paying, send the screenshot with the UTR number here." as
-      string | null,
 }
 
 function paidOf(f: Fee) {
@@ -500,16 +533,67 @@ export const feeHandlers = [
     return HttpResponse.json(submissionDto(s))
   }),
 
-  /* payment details */
-  http.get('/api/v1/payment-settings', () => HttpResponse.json(settingsDto())),
-  http.put('/api/v1/payment-settings', async ({ request }) => {
+  /* payment accounts */
+  http.get('/api/v1/payment-accounts', () => HttpResponse.json(liveAccounts().map(accountDto))),
+  http.post('/api/v1/payment-accounts', async ({ request }) => {
     await delay(300)
-    const b = await body<Schemas['UpdatePaymentSettingsDto']>(request)
-    if (b.qrKey && !storage.has(b.qrKey)) return error(400, 'Upload the QR first')
-    settings = { ...settings, ...b }
-    return HttpResponse.json(settingsDto())
+    const b = await body<Schemas['CreatePaymentAccountDto']>(request)
+    const bad = checkAccount(b, null)
+    if (bad) return bad
+    const a: Account = {
+      id: id(),
+      upiId: null,
+      payeeName: null,
+      qrKey: null,
+      bankAccountName: null,
+      bankAccountNo: null,
+      ifsc: null,
+      bankBranch: null,
+      instructions: null,
+      ...b,
+      createdAt: now(),
+      updatedAt: now(),
+    }
+    accounts.push(a)
+    return HttpResponse.json(accountDto(a), { status: 201 })
   }),
-  http.get('/api/v1/me/payment-settings', () => HttpResponse.json(settingsDto())),
+  http.patch('/api/v1/payment-accounts/:id', async ({ params, request }) => {
+    await delay(300)
+    const a = liveAccounts().find((x) => x.id === params.id)
+    if (!a) return error(404, 'Payment account not found')
+    const b = await body<Schemas['UpdatePaymentAccountDto']>(request)
+    const bad = checkAccount({ ...a, ...b }, a.id)
+    if (bad) return bad
+    Object.assign(a, b, { updatedAt: now() })
+    return HttpResponse.json(accountDto(a))
+  }),
+  http.delete('/api/v1/payment-accounts/:id', ({ params }) => {
+    const a = liveAccounts().find((x) => x.id === params.id)
+    if (!a) return error(404, 'Payment account not found')
+    if (a.feeTypes.length)
+      return error(409, 'Account still has fee types: move them to another account first')
+    a.deleted = true
+    return new HttpResponse(null, { status: 204 })
+  }),
+  http.get('/api/v1/me/payment-accounts', () =>
+    HttpResponse.json(
+      liveAccounts()
+        .filter((a) => a.feeTypes.length)
+        .map((a) => without(accountDto(a), 'qrKey', 'createdAt', 'updatedAt'))
+    )
+  ),
+
+  /* receipts */
+  http.get('/api/v1/payments/:id', ({ params }) => {
+    const p = payments.find((x) => x.id === params.id)
+    return p ? HttpResponse.json(receiptDto(p)) : error(404, 'Payment not found')
+  }),
+  http.get('/api/v1/me/payments/:id', ({ params }) => {
+    const p = payments.find((x) => x.id === params.id)
+    const f = p && fees.find((x) => x.id === p.studentFeeId)
+    if (!p || f?.studentId !== meStudent().id) return error(404, 'Payment not found')
+    return HttpResponse.json(without(receiptDto(p), 'voidReason', 'notes'))
+  }),
 
   /* student: own fees, payments and requests */
   http.get('/api/v1/me/fees', () => {
@@ -518,9 +602,7 @@ export const feeHandlers = [
       ...s,
       items: s.items.map((f) => ({
         ...f,
-        payments: f.payments
-          .filter((p) => !p.voidedAt)
-          .map((p) => without(p, 'voidedAt', 'voidReason')),
+        payments: f.payments.map((p) => without(p, 'voidReason')),
       })),
     })
   }),
@@ -528,7 +610,7 @@ export const feeHandlers = [
     const mine = new Map(fees.filter((f) => f.studentId === meStudent().id).map((f) => [f.id, f]))
     return HttpResponse.json(
       payments
-        .filter((p) => mine.has(p.studentFeeId) && !p.voidedAt)
+        .filter((p) => mine.has(p.studentFeeId))
         .sort((a, b) => b.paidOn.localeCompare(a.paidOn))
         .map((p) => {
           const f = mine.get(p.studentFeeId)!
@@ -538,6 +620,7 @@ export const feeHandlers = [
             amount: money(p.amount),
             method: p.method,
             receiptNo: p.receiptNo,
+            voidedAt: p.voidedAt,
             feeId: f.id,
             feeTitle: f.title,
             feeType: f.feeType,
@@ -560,10 +643,18 @@ export const feeHandlers = [
     if (!fee) return error(404, 'Fee not found')
     const b = await body<Schemas['CreatePaymentSubmissionDto']>(request)
     if (!storage.has(b.screenshotKey)) return error(400, 'Upload the screenshot first')
-    if (Number(b.amount) > fee.total - paidOf(fee))
-      return error(400, 'Amount is more than the remaining balance')
+    const acct = liveAccounts().find((a) => a.id === b.paymentAccountId)
+    if (!acct) return error(404, 'Payment account not found')
+    const pending = submissions
+      .filter((x) => x.studentFeeId === fee.id && x.status === 'PENDING')
+      .reduce((a, x) => a + x.amount, 0)
+    const room = fee.total - paidOf(fee) - pending
+    if (Number(b.amount) > room)
+      return error(409, `Amount exceeds the remaining balance of ${money(Math.max(room, 0))}`)
     const s = addSubmission(fee, Number(b.amount), b.method, b.referenceNo, b.paidOn, 0, {
       note: b.note ?? null,
+      paymentAccountId: acct.id,
+      paymentAccountName: acct.name,
     })
     s.screenshotKey = b.screenshotKey
     return HttpResponse.json(
@@ -659,12 +750,44 @@ export const feeHandlers = [
   }),
 ]
 
-function settingsDto(): Schemas['PaymentSettingsDto'] {
+/** Same rules as the API: a UPI ID or full bank details, and each fee type on one account. */
+function checkAccount(a: Partial<Account>, selfId: string | null) {
+  if (!a.upiId && !(a.bankAccountName && a.bankAccountNo && a.ifsc))
+    return error(400, 'A UPI ID or full bank details (account name, number, IFSC) are required')
+  if (a.qrKey && !storage.has(a.qrKey)) return error(400, 'Upload the QR first')
+  for (const t of a.feeTypes ?? []) {
+    const holder = liveAccounts().find((x) => x.id !== selfId && x.feeTypes.includes(t))
+    if (holder) return error(409, `Fee type ${t} belongs to account ${holder.name}`)
+  }
+  return null
+}
+
+function receiptDto(p: Payment): Schemas['AdminReceiptDto'] {
+  const f = fees.find((x) => x.id === p.studentFeeId)!
+  const st = students.find((x) => x.id === f.studentId)!
+  const classId = classOf(f.studentId, f.academicYearId)
+  const paid = paidOf(f)
   return {
-    ...settings,
-    qrUrl:
-      settings.qrKey && storage.has(settings.qrKey)
-        ? URL.createObjectURL(storage.get(settings.qrKey)!)
-        : null,
+    id: p.id,
+    receiptNo: p.receiptNo,
+    amount: money(p.amount),
+    method: p.method,
+    referenceNo: p.referenceNo,
+    paidOn: p.paidOn,
+    recordedByName: 'School Admin',
+    feeId: f.id,
+    feeTitle: f.title,
+    feeType: f.feeType,
+    feeTotalAmount: money(f.total),
+    studentId: st.id,
+    studentName: `${st.firstName} ${st.lastName}`,
+    admissionNo: st.admissionNo,
+    className: classes.find((c) => c.id === classId)?.standard ?? null,
+    academicYearName: years.find((y) => y.id === f.academicYearId)?.name ?? current.name,
+    paidToDate: money(paid),
+    balance: money(Math.max(0, f.total - paid)),
+    voidedAt: p.voidedAt,
+    voidReason: p.voidReason,
+    notes: p.notes,
   }
 }

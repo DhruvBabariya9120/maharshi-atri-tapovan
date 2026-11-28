@@ -86,7 +86,7 @@ export interface paths {
     put?: never
     /**
      * Request a password reset email
-     * @description Always returns the same message, whether or not the account exists. Limited to 3 requests per 15 minutes per IP and email.
+     * @description Returns the same message whether or not the account exists. If the email cannot be sent the reset token is discarded and the call fails with 502 (which reveals that the account exists; accepted). Limited to 3 requests per 15 minutes per IP and email.
      */
     post: operations['auth_forgotPassword']
     delete?: never
@@ -423,6 +423,26 @@ export interface paths {
     patch: operations['students_updateStatus']
     trace?: never
   }
+  '/api/v1/students/{id}/restore': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Restore a deleted student
+     * @description Clears the delete mark and re-enables the portal login unless the status is INACTIVE. The invitation revoked by the delete is not brought back.
+     */
+    post: operations['students_restore']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/students/{id}/photo': {
     parameters: {
       query?: never
@@ -489,7 +509,7 @@ export interface paths {
     put?: never
     /**
      * Register an uploaded document
-     * @description Call after uploading with a STUDENT_DOCUMENT presign.
+     * @description Call after uploading with a STUDENT_DOCUMENT presign. The stored `mimeType` is derived from the uploaded file; the request `mimeType` must match it.
      */
     post: operations['students_addDocument']
     delete?: never
@@ -629,6 +649,44 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/v1/invitations': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List invitations */
+    get: operations['invitations_list']
+    put?: never
+    /**
+     * Invite students (bulk)
+     * @description Sends one invitation per student to the guardian email. 1-500 items. All-or-nothing in one transaction: if any item is invalid the whole request is rejected with per-item errors (e.g. `items.3.studentId`) and nothing is sent. A new invite revokes any older pending invite for the same email, so only the newest link works.
+     */
+    post: operations['invitations_create']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/invitations/{id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /** Revoke a pending invitation */
+    delete: operations['invitations_revoke']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/uploads/presign': {
     parameters: {
       query?: never
@@ -639,8 +697,8 @@ export interface paths {
     get?: never
     put?: never
     /**
-     * Get a presigned PUT URL
-     * @description Upload straight to storage with the returned URL and headers, then send `key` to the owning endpoint. Limits: STUDENT_DOCUMENT 10 MB (pdf, jpeg, png); STUDENT_PHOTO 2 MB, PAYMENT_QR 2 MB (jpeg, png, webp); PAYMENT_SCREENSHOT 5 MB (jpeg, png, webp). STUDENT callers may only presign PAYMENT_SCREENSHOT and STUDENT_PHOTO. `studentId`: ADMIN must send it for STUDENT_DOCUMENT and STUDENT_PHOTO and must omit it for PAYMENT_QR; STUDENT must omit it (their own student record is used).
+     * Get a signed Cloudinary upload
+     * @description POST the file as multipart/form-data (the `file` part plus every returned field, unchanged) to `uploadUrl`, then send `key` to the owning endpoint. Size and format limits are enforced by the upload presets. Accepted content types: STUDENT_DOCUMENT pdf, jpeg, png; STUDENT_PHOTO, PAYMENT_QR and PAYMENT_SCREENSHOT jpeg, png, webp. STUDENT callers may only presign PAYMENT_SCREENSHOT and STUDENT_PHOTO. `studentId`: ADMIN must send it for STUDENT_DOCUMENT and STUDENT_PHOTO (404 if the student does not exist) and must omit it for PAYMENT_QR; STUDENT must omit it (their own student record is used; 404 if none).
      */
     post: operations['uploads_presign']
     delete?: never
@@ -765,6 +823,26 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/v1/payments/{id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Receipt for one payment
+     * @description Everything the receipt shows. paidToDate and balance are frozen as of this payment. Voided payments are returned with voidedAt and voidReason.
+     */
+    get: operations['fees_receipt']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/v1/payments/{id}/void': {
     parameters: {
       query?: never
@@ -876,25 +954,52 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  '/api/v1/payment-settings': {
+  '/api/v1/payment-accounts': {
     parameters: {
       query?: never
       header?: never
       path?: never
       cookie?: never
     }
-    /** Get the school payment settings (single record) */
-    get: operations['paymentSettings_get']
     /**
-     * Update the payment settings
-     * @description All fields optional. `qrKey` comes from a PAYMENT_QR presign (admin only).
+     * List payment accounts
+     * @description Not deleted, including ones with no fee types.
      */
-    put: operations['paymentSettings_update']
-    post?: never
+    get: operations['paymentAccounts_list']
+    put?: never
+    /**
+     * Create a payment account
+     * @description Needs a name, at least one fee type, and a UPI ID or full bank details (account name, number, IFSC). `qrKey` comes from a PAYMENT_QR presign.
+     */
+    post: operations['paymentAccounts_create']
     delete?: never
     options?: never
     head?: never
     patch?: never
+    trace?: never
+  }
+  '/api/v1/payment-accounts/{id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /**
+     * Delete a payment account (soft)
+     * @description Only when it has no fee types: move them to another account first. Past submissions keep pointing at it.
+     */
+    delete: operations['paymentAccounts_remove']
+    options?: never
+    head?: never
+    /**
+     * Update a payment account
+     * @description `feeTypes` replaces the whole list and may be empty. The result must still have a UPI ID or full bank details (400).
+     */
+    patch: operations['paymentAccounts_update']
     trace?: never
   }
   '/api/v1/me/fees': {
@@ -923,7 +1028,7 @@ export interface paths {
     }
     /**
      * Own payment history (STUDENT)
-     * @description Non-voided payments, newest first.
+     * @description All own payments, newest first. Voided ones are marked by voidedAt.
      */
     get: operations['meFees_payments']
     put?: never
@@ -934,15 +1039,38 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  '/api/v1/me/payment-settings': {
+  '/api/v1/me/payments/{id}': {
     parameters: {
       query?: never
       header?: never
       path?: never
       cookie?: never
     }
-    /** School UPI / bank details (STUDENT) */
-    get: operations['meFees_settings']
+    /**
+     * Own receipt (STUDENT)
+     * @description Own payments only; another student's payment is a 404. A voided payment is returned with voidedAt set.
+     */
+    get: operations['meFees_receipt']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/v1/me/payment-accounts': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * School payment accounts (STUDENT)
+     * @description Accounts that collect at least one fee type, with a signed qrUrl. Pay each fee into the account whose feeTypes include it. A fee type on no account is paid in cash at the office.
+     */
+    get: operations['meFees_accounts']
     put?: never
     post?: never
     delete?: never
@@ -1021,7 +1149,10 @@ export interface paths {
     delete: operations['exams_remove']
     options?: never
     head?: never
-    /** Update exam details */
+    /**
+     * Update exam details
+     * @description Changing gradeScaleId on a published exam is refused with 409 (unpublish first).
+     */
     patch: operations['exams_update']
     trace?: never
   }
@@ -1093,7 +1224,7 @@ export interface paths {
     put?: never
     /**
      * Publish (or re-publish) results
-     * @description Computes totals, percentage, grade, rank (1,1,3 style) and isPass into exam_results, sets PUBLISHED, bumps publishCount. Overall pass = every subject meets its pass marks AND the grade band isPass. Students see results only after this.
+     * @description Computes totals, percentage, grade, rank (1,1,3 style) and isPass into exam_results, sets PUBLISHED, bumps publishCount. Overall pass = every subject meets its pass marks AND the grade band isPass. Students see results only after this. Publishing an already published exam rebuilds the results from the current marks, bumps publishCount and mails students that results were updated. Refused with 409 when the exam has no subjects, has no eligible students, or marks are incomplete.
      */
     post: operations['exams_publish']
     delete?: never
@@ -1292,7 +1423,7 @@ export interface paths {
     put?: never
     /**
      * Invite a new admin
-     * @description Creates one admin invitation and emails the invite link. The account is created when the invite is accepted.
+     * @description Creates one admin invitation and emails the invite link. The account is created when the invite is accepted. Any older pending invite for the same email is revoked.
      */
     post: operations['admins_invite']
     delete?: never
@@ -1337,44 +1468,6 @@ export interface paths {
      * @description An admin cannot deactivate their own account (409).
      */
     patch: operations['admins_setStatus']
-    trace?: never
-  }
-  '/api/v1/invitations': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List invitations */
-    get: operations['invitations_list']
-    put?: never
-    /**
-     * Invite students (bulk)
-     * @description Sends one invitation per student to the guardian email. 1-500 items. All-or-nothing in one transaction: if any item is invalid the whole request is rejected with per-item errors (e.g. `items.3.studentId`) and nothing is sent.
-     */
-    post: operations['invitations_create']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/invitations/{id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post?: never
-    /** Revoke a pending invitation */
-    delete: operations['invitations_revoke']
-    options?: never
-    head?: never
-    patch?: never
     trace?: never
   }
 }
@@ -1565,6 +1658,16 @@ export interface components {
       academicYearId: string
       /** @example 5 */
       standard: string
+      /**
+       * @description ACTIVE, non-deleted students enrolled in this class.
+       * @example 38
+       */
+      studentCount: number
+      /**
+       * @description Of studentCount, those with boarding HOSTEL.
+       * @example 12
+       */
+      hostelCount: number
     }
     PaginatedClassesDto: {
       items: components['schemas']['ClassDto'][]
@@ -1697,7 +1800,7 @@ export interface components {
        * @default false
        */
       isDefault: boolean
-      /** @description At least 1 band. Per band 0 <= minPercent <= maxPercent <= 100. The Phase 3 service also rejects (400) duplicate grades, overlapping ranges and gaps between bands. A "Pass / Fail only" scale is just a scale with 2 bands. On update, bands replace the existing set. */
+      /** @description At least 1 band. Per band 0 <= minPercent <= maxPercent <= 100. The Phase 3 service also rejects (400) duplicate grades (compared case-insensitively), overlapping ranges and gaps between bands. A "Pass / Fail only" scale is just a scale with 2 bands. On update, bands replace the existing set. */
       bands: components['schemas']['GradeBandInputDto'][]
     }
     UpdateGradeScaleDto: {
@@ -1711,10 +1814,10 @@ export interface components {
        * @default false
        */
       isDefault: boolean
-      /** @description At least 1 band. Per band 0 <= minPercent <= maxPercent <= 100. The Phase 3 service also rejects (400) duplicate grades, overlapping ranges and gaps between bands. A "Pass / Fail only" scale is just a scale with 2 bands. On update, bands replace the existing set. */
+      /** @description At least 1 band. Per band 0 <= minPercent <= maxPercent <= 100. The Phase 3 service also rejects (400) duplicate grades (compared case-insensitively), overlapping ranges and gaps between bands. A "Pass / Fail only" scale is just a scale with 2 bands. On update, bands replace the existing set. */
       bands?: components['schemas']['GradeBandInputDto'][]
     }
-    StudentDto: {
+    StudentListItemDto: {
       /** Format: uuid */
       id: string
       /** @example MAT/2026/0001 */
@@ -1766,9 +1869,30 @@ export interface components {
       createdAt: string
       /** Format: date-time */
       updatedAt: string
+      /**
+       * @description Class standard in that year; null when not enrolled.
+       * @example 5
+       */
+      currentClassName: string | null
+      /** @example 12 */
+      rollNo: number | null
+      /** @enum {string|null} */
+      boarding: 'HOSTEL' | 'DAY_SCHOLAR' | null
+      /**
+       * @description Over that year's fee items: PAID (all paid), PARTIAL (something paid, not all), PENDING (nothing paid), NO_FEES (no items).
+       * @enum {string}
+       */
+      feeStatus: 'PAID' | 'PARTIAL' | 'PENDING' | 'NO_FEES'
+      /** @description Any fee item that year is past due and not fully paid. */
+      hasOverdue: boolean
+      /**
+       * @description NOT_INVITED (no account, no pending or expired invite), INVITED (pending invite), INVITE_EXPIRED (latest invite expired), ACTIVE (account can log in), DEACTIVATED (account exists, login blocked).
+       * @enum {string}
+       */
+      portalStatus: 'NOT_INVITED' | 'INVITED' | 'INVITE_EXPIRED' | 'ACTIVE' | 'DEACTIVATED'
     }
     PaginatedStudentsDto: {
-      items: components['schemas']['StudentDto'][]
+      items: components['schemas']['StudentListItemDto'][]
       page: number
       limit: number
       total: number
@@ -1841,8 +1965,69 @@ export interface components {
       /** @description 1-500 items. All-or-nothing: one invalid item rejects the whole request with per-item errors (e.g. items.3.field). */
       items: components['schemas']['CreateStudentDto'][]
     }
+    StudentDto: {
+      /** Format: uuid */
+      id: string
+      /** @example MAT/2026/0001 */
+      admissionNo: string
+      /** @example Aarav */
+      firstName: string
+      /** @example Sharma */
+      lastName: string
+      /**
+       * @description ISO date.
+       * @example 2012-04-18
+       */
+      dob: string
+      /** @enum {string} */
+      gender: 'MALE' | 'FEMALE' | 'OTHER'
+      /**
+       * @description ISO date.
+       * @example 2026-06-10
+       */
+      admissionDate: string
+      /** @enum {string} */
+      status: 'ACTIVE' | 'INACTIVE' | 'ALUMNI'
+      /** @enum {string|null} */
+      bloodGroup?: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-' | null
+      /**
+       * @description 12 digits. Returned in full to ADMIN callers; masked (e.g. XXXXXXXX9012) for STUDENT callers.
+       * @example 123456789012
+       */
+      aadhaarNo?: string | null
+      motherTongue?: string | null
+      previousSchool?: string | null
+      addressLine?: string | null
+      city?: string | null
+      state?: string | null
+      pincode?: string | null
+      guardianName: string
+      /** @example 9876543210 */
+      guardianPhone: string
+      /** @example Father */
+      guardianRelation: string
+      /**
+       * @description Also the student portal login email.
+       * @example guardian@example.com
+       */
+      guardianEmail: string
+      /** @description Whether a photo is set. Fetch it via a signed URL. */
+      hasPhoto: boolean
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      updatedAt: string
+    }
+    InvitationFailureDto: {
+      /** Format: uuid */
+      studentId: string
+      /** @example Could not send the invitation email */
+      reason: string
+    }
     StudentsResultDto: {
       items: components['schemas']['StudentDto'][]
+      /** @description Students created with `sendInvite` whose invitation email could not be sent. The students stay saved; each failed invite is revoked and listed here. */
+      inviteFailed: components['schemas']['InvitationFailureDto'][]
     }
     UpdateStudentDto: {
       /** @example Aarav */
@@ -1907,7 +2092,7 @@ export interface components {
       photoKey: string
     }
     SignedUrlDto: {
-      /** @example https://bucket.r2.cloudflarestorage.com/... */
+      /** @example https://api.cloudinary.com/v1_1/<cloud>/image/download?... */
       url: string
       /** Format: date-time */
       expiresAt: string
@@ -1970,10 +2155,11 @@ export interface components {
        * @example student-document/<studentId>/<uuid>.pdf
        */
       key: string
-      /** @enum {string} */
+      /**
+       * @description Must match the uploaded file: the server stores the type derived from the file (the key extension) and rejects a mismatch with 400.
+       * @enum {string}
+       */
       mimeType: 'application/pdf' | 'image/jpeg' | 'image/png'
-      /** @example 524288 */
-      sizeBytes: number
     }
     CreateEnrollmentItemDto: {
       /** Format: uuid */
@@ -2017,13 +2203,51 @@ export interface components {
       /** @enum {string} */
       boarding?: 'HOSTEL' | 'DAY_SCHOLAR'
     }
+    CreateInvitationItemDto: {
+      /**
+       * Format: uuid
+       * @description The invite is sent to this student guardian email.
+       */
+      studentId: string
+    }
+    CreateInvitationsDto: {
+      /** @description 1-500 items. All-or-nothing: one invalid item rejects the whole request with per-item errors (e.g. items.3.field). */
+      items: components['schemas']['CreateInvitationItemDto'][]
+    }
+    InvitationDto: {
+      /** Format: uuid */
+      id: string
+      /** @example guardian@example.com */
+      email: string
+      /** @enum {string} */
+      role: 'ADMIN' | 'STUDENT'
+      /** @example Asha Verma */
+      fullName: string
+      /** Format: uuid */
+      studentId: string | null
+      /** @enum {string} */
+      status: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED'
+      /** Format: date-time */
+      expiresAt: string
+      /** Format: date-time */
+      createdAt: string
+    }
+    InvitationsResultDto: {
+      items: components['schemas']['InvitationDto'][]
+      /** @description Invitations whose email could not be sent. `items` holds only the invitations that were sent; each failed one is revoked and listed here. */
+      failed: components['schemas']['InvitationFailureDto'][]
+    }
+    PaginatedInvitationsDto: {
+      items: components['schemas']['InvitationDto'][]
+      page: number
+      limit: number
+      total: number
+    }
     PresignUploadDto: {
       /** @enum {string} */
       purpose: 'STUDENT_DOCUMENT' | 'STUDENT_PHOTO' | 'PAYMENT_QR' | 'PAYMENT_SCREENSHOT'
       /** @example application/pdf */
       contentType: string
-      /** @example 524288 */
-      sizeBytes: number
       /**
        * Format: uuid
        * @description Owner student. ADMIN: required for STUDENT_DOCUMENT and STUDENT_PHOTO, must be omitted for PAYMENT_QR. STUDENT: must be omitted (uploads are always for the caller own student record).
@@ -2031,22 +2255,37 @@ export interface components {
       studentId?: string
     }
     PresignedUploadDto: {
-      /** @example https://bucket.r2.cloudflarestorage.com/... */
+      /**
+       * @description Cloudinary upload endpoint to POST the file to.
+       * @example https://api.cloudinary.com/v1_1/<cloud>/raw/upload
+       */
       uploadUrl: string
-      /** @example student-document/<studentId>/<uuid>.pdf */
+      /**
+       * @example POST
+       * @enum {string}
+       */
+      method: 'POST'
+      /**
+       * @description Form fields to send as multipart/form-data together with the `file` part. Send them unchanged.
+       * @example {
+       *       "api_key": "123456789012345",
+       *       "timestamp": "1767225600",
+       *       "signature": "<sha1 hex>",
+       *       "public_id": "tapovan/student-document/<studentId>/<uuid>.pdf",
+       *       "upload_preset": "tapovan_student_document",
+       *       "type": "private"
+       *     }
+       */
+      fields: {
+        [key: string]: string
+      }
+      /**
+       * @description Send this key to the owning endpoint after the upload.
+       * @example tapovan/student-document/<studentId>/<uuid>.pdf
+       */
       key: string
       /** Format: date-time */
       expiresAt: string
-      /**
-       * @description Headers the client must send with the PUT (`Content-Type` and `Content-Length`).
-       * @example {
-       *       "Content-Type": "application/pdf",
-       *       "Content-Length": "524288"
-       *     }
-       */
-      headers: {
-        [key: string]: string
-      }
     }
     AdminFeePaymentLineDto: {
       /** Format: uuid */
@@ -2059,7 +2298,10 @@ export interface components {
       method: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE'
       /** @example RCPT-2026-000123 */
       receiptNo: string
-      /** Format: date-time */
+      /**
+       * Format: date-time
+       * @description Set when the payment was voided. Show it as Voided.
+       */
       voidedAt: string | null
       voidReason: string | null
     }
@@ -2094,7 +2336,7 @@ export interface components {
       createdAt: string
       /** Format: date-time */
       updatedAt: string
-      /** @description All payments including voided, oldest first. */
+      /** @description All payments including voided, oldest first, with void reasons. */
       payments: components['schemas']['AdminFeePaymentLineDto'][]
     }
     PaginatedStudentFeesDto: {
@@ -2244,6 +2486,66 @@ export interface components {
     PaymentsResultDto: {
       items: components['schemas']['FeePaymentDto'][]
     }
+    AdminReceiptDto: {
+      /** Format: uuid */
+      id: string
+      /** @example RCPT-2026-000123 */
+      receiptNo: string
+      /** @example 5000.00 */
+      amount: string
+      /** @enum {string} */
+      method: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE'
+      /** @example 412345678901 */
+      referenceNo: string | null
+      /** @example 2026-07-01 */
+      paidOn: string
+      /**
+       * @description Admin who recorded or approved it.
+       * @example Office Admin
+       */
+      recordedByName: string
+      /** Format: uuid */
+      feeId: string
+      /** @example Tuition Term 1 */
+      feeTitle: string
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+      /**
+       * @description Current fee total.
+       * @example 45000.00
+       */
+      feeTotalAmount: string
+      /** Format: uuid */
+      studentId: string
+      /** @example Aarav Sharma */
+      studentName: string
+      /** @example MAT/2026/0001 */
+      admissionNo: string
+      /**
+       * @description Class in the fee's academic year; null when not enrolled.
+       * @example 5
+       */
+      className: string | null
+      /** @example 2026-27 */
+      academicYearName: string
+      /**
+       * @description Paid on this fee including this payment, as of this payment.
+       * @example 20000.00
+       */
+      paidToDate: string
+      /**
+       * @description Remaining on this fee right after this payment.
+       * @example 25000.00
+       */
+      balance: string
+      /**
+       * Format: date-time
+       * @description Set when voided. Show the receipt as Voided.
+       */
+      voidedAt: string | null
+      voidReason: string | null
+      notes: string | null
+    }
     ReasonDto: {
       /** @example Entered twice */
       reason: string
@@ -2293,6 +2595,13 @@ export interface components {
       /** @enum {string} */
       method: 'UPI' | 'BANK_TRANSFER'
       /**
+       * Format: uuid
+       * @description Account the student paid into.
+       */
+      paymentAccountId: string
+      /** @example Tuition account */
+      paymentAccountName: string
+      /**
        * @description UTR / transaction reference.
        * @example 412345678901
        */
@@ -2336,6 +2645,13 @@ export interface components {
       /** @enum {string} */
       method: 'UPI' | 'BANK_TRANSFER'
       /**
+       * Format: uuid
+       * @description Account the student paid into.
+       */
+      paymentAccountId: string
+      /** @example Tuition account */
+      paymentAccountName: string
+      /**
        * @description UTR / transaction reference.
        * @example 412345678901
        */
@@ -2361,7 +2677,15 @@ export interface components {
       /** @description Signed GET URL (300 s). Only on GET /payment-submissions/:id. */
       screenshotUrl: string
     }
-    PaymentSettingsDto: {
+    PaymentAccountDto: {
+      /** Format: uuid */
+      id: string
+      /** @example Tuition account */
+      name: string
+      /** @description Fee types paid into this account. Empty when the admin moved them all elsewhere. */
+      feeTypes: (
+        'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+      )[]
       /** @example school@okhdfc */
       upiId: string | null
       payeeName: string | null
@@ -2374,9 +2698,22 @@ export interface components {
       ifsc: string | null
       bankBranch: string | null
       instructions: string | null
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      updatedAt: string
     }
-    UpdatePaymentSettingsDto: {
-      /** @example school@okhdfc */
+    CreatePaymentAccountDto: {
+      /** @example Tuition account */
+      name: string
+      /** @description At least one. A fee type already on another account is a 409. */
+      feeTypes: (
+        'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+      )[]
+      /**
+       * @description Required unless full bank details are given.
+       * @example school@okhdfc
+       */
       upiId?: string
       /** @example Tapovan School Trust */
       payeeName?: string
@@ -2385,13 +2722,37 @@ export interface components {
        * @example payment-qr/3f2a.png
        */
       qrKey?: string
+      /** @description Required when upiId is not given. */
       bankAccountName?: string
-      /** @example 123456789012 */
+      /**
+       * @description Required when upiId is not given.
+       * @example 123456789012
+       */
+      bankAccountNo?: string
+      /**
+       * @description Required when upiId is not given.
+       * @example HDFC0001234
+       */
+      ifsc?: string
+      bankBranch?: string
+      /** @example Quote the admission number in the remark. */
+      instructions?: string
+    }
+    UpdatePaymentAccountDto: {
+      name?: string
+      /** @description Replaces the list. May be empty (the account is then hidden from students and can be deleted). A fee type on another account is a 409. */
+      feeTypes?: (
+        'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+      )[]
+      upiId?: string
+      payeeName?: string
+      /** @description `key` from a PAYMENT_QR presign. */
+      qrKey?: string
+      bankAccountName?: string
       bankAccountNo?: string
       /** @example HDFC0001234 */
       ifsc?: string
       bankBranch?: string
-      /** @example Quote the admission number in the remark. */
       instructions?: string
     }
     FeePaymentLineDto: {
@@ -2405,6 +2766,11 @@ export interface components {
       method: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE'
       /** @example RCPT-2026-000123 */
       receiptNo: string
+      /**
+       * Format: date-time
+       * @description Set when the payment was voided. Show it as Voided.
+       */
+      voidedAt: string | null
     }
     StudentFeeDto: {
       /** Format: uuid */
@@ -2437,7 +2803,7 @@ export interface components {
       createdAt: string
       /** Format: date-time */
       updatedAt: string
-      /** @description Non-voided payments, oldest first. */
+      /** @description All payments, oldest first. Voided ones are marked by voidedAt and not counted. */
       payments: components['schemas']['FeePaymentLineDto'][]
     }
     StudentFeeSummaryDto: {
@@ -2462,12 +2828,96 @@ export interface components {
       method: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE'
       /** @example RCPT-2026-000123 */
       receiptNo: string
+      /**
+       * Format: date-time
+       * @description Set when the payment was voided. Show it as Voided.
+       */
+      voidedAt: string | null
       /** Format: uuid */
       feeId: string
       /** @example Tuition Term 1 */
       feeTitle: string
       /** @enum {string} */
       feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+    }
+    ReceiptDto: {
+      /** Format: uuid */
+      id: string
+      /** @example RCPT-2026-000123 */
+      receiptNo: string
+      /** @example 5000.00 */
+      amount: string
+      /** @enum {string} */
+      method: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE'
+      /** @example 412345678901 */
+      referenceNo: string | null
+      /** @example 2026-07-01 */
+      paidOn: string
+      /**
+       * @description Admin who recorded or approved it.
+       * @example Office Admin
+       */
+      recordedByName: string
+      /** Format: uuid */
+      feeId: string
+      /** @example Tuition Term 1 */
+      feeTitle: string
+      /** @enum {string} */
+      feeType: 'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+      /**
+       * @description Current fee total.
+       * @example 45000.00
+       */
+      feeTotalAmount: string
+      /** Format: uuid */
+      studentId: string
+      /** @example Aarav Sharma */
+      studentName: string
+      /** @example MAT/2026/0001 */
+      admissionNo: string
+      /**
+       * @description Class in the fee's academic year; null when not enrolled.
+       * @example 5
+       */
+      className: string | null
+      /** @example 2026-27 */
+      academicYearName: string
+      /**
+       * @description Paid on this fee including this payment, as of this payment.
+       * @example 20000.00
+       */
+      paidToDate: string
+      /**
+       * @description Remaining on this fee right after this payment.
+       * @example 25000.00
+       */
+      balance: string
+      /**
+       * Format: date-time
+       * @description Set when voided. Show the receipt as Voided.
+       */
+      voidedAt: string | null
+    }
+    MyPaymentAccountDto: {
+      /** Format: uuid */
+      id: string
+      /** @example Tuition account */
+      name: string
+      /** @description Fee types paid into this account. Empty when the admin moved them all elsewhere. */
+      feeTypes: (
+        'TUITION' | 'HOSTEL' | 'SCHOOL' | 'ACTIVITY' | 'WASHING' | 'DRESS' | 'STATIONERY'
+      )[]
+      /** @example school@okhdfc */
+      upiId: string | null
+      payeeName: string | null
+      /** @description Signed GET URL for the QR image (300 s), when qrKey is set. */
+      qrUrl: string | null
+      bankAccountName: string | null
+      bankAccountNo: string | null
+      /** @example HDFC0001234 */
+      ifsc: string | null
+      bankBranch: string | null
+      instructions: string | null
     }
     CreatePaymentSubmissionDto: {
       /**
@@ -2477,6 +2927,11 @@ export interface components {
       amount: string
       /** @enum {string} */
       method: 'UPI' | 'BANK_TRANSFER'
+      /**
+       * Format: uuid
+       * @description Account the student paid into, from GET /me/payment-accounts. Not checked against the fee type. 404 when missing or deleted.
+       */
+      paymentAccountId: string
       /**
        * @description UTR / transaction reference.
        * @example 412345678901
@@ -2507,6 +2962,13 @@ export interface components {
       amount: string
       /** @enum {string} */
       method: 'UPI' | 'BANK_TRANSFER'
+      /**
+       * Format: uuid
+       * @description Account the student paid into.
+       */
+      paymentAccountId: string
+      /** @example Tuition account */
+      paymentAccountName: string
       /**
        * @description UTR / transaction reference.
        * @example 412345678901
@@ -2561,7 +3023,7 @@ export interface components {
        * @example 1
        */
       publishCount: number
-      /** @description True when any mark was saved after publishedAt (marks.updated_at > exams.published_at); computed in Phase 3. Always false for a draft. */
+      /** @description True when any mark of an eligible student (ACTIVE or ALUMNI, not deleted) was saved after publishedAt (marks.updated_at > exams.published_at); students keep seeing the last published results until re-publish. Always false for a draft. */
       changedSinceLastPublish: boolean
       /** Format: date-time */
       createdAt: string
@@ -2667,7 +3129,7 @@ export interface components {
        * @example 1
        */
       publishCount: number
-      /** @description True when any mark was saved after publishedAt (marks.updated_at > exams.published_at); computed in Phase 3. Always false for a draft. */
+      /** @description True when any mark of an eligible student (ACTIVE or ALUMNI, not deleted) was saved after publishedAt (marks.updated_at > exams.published_at); students keep seeing the last published results until re-publish. Always false for a draft. */
       changedSinceLastPublish: boolean
       /** Format: date-time */
       createdAt: string
@@ -2902,12 +3364,13 @@ export interface components {
       actorName: string | null
       /** @example ADMIN */
       actorRole: string | null
-      /** @example EXAM_PUBLISH */
+      /** @example POST /subjects */
       action: string
-      /** @example exam */
+      /** @example subjects */
       entityType: string
       /** @example 0b7e2c1a-3f4d-4e5a-9a6b-1c2d3e4f5a6b */
       entityId: string | null
+      /** @description Stored as { body } (the request body, secrets redacted); before/after values are not recorded. */
       changes: components['schemas']['ActivityLogChangesDto'] | null
       /** @example 203.0.113.7 */
       ip: string | null
@@ -3024,9 +3487,9 @@ export interface components {
     DashboardSummaryDto: {
       /**
        * Format: uuid
-       * @description Year the numbers are for: the query value or the current year.
+       * @description Year the numbers are for: the query value or the current year; null when there is no current year (year-based numbers are then zero).
        */
-      academicYearId: string
+      academicYearId: string | null
       students: components['schemas']['StudentCountsDto']
       fees: components['schemas']['FeeTotalsDto']
       feesByStandard: components['schemas']['FeesByStandardDto'][]
@@ -3128,26 +3591,6 @@ export interface components {
       email: string
       /** @example Asha Verma */
       fullName: string
-      /** @example 9876543210 */
-      phone?: string
-    }
-    InvitationDto: {
-      /** Format: uuid */
-      id: string
-      /** @example guardian@example.com */
-      email: string
-      /** @enum {string} */
-      role: 'ADMIN' | 'STUDENT'
-      /** @example Asha Verma */
-      fullName: string
-      /** Format: uuid */
-      studentId: string | null
-      /** @enum {string} */
-      status: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED'
-      /** Format: date-time */
-      expiresAt: string
-      /** Format: date-time */
-      createdAt: string
     }
     UpdateAdminDto: {
       /** @example Asha Verma */
@@ -3158,26 +3601,6 @@ export interface components {
     UpdateAdminStatusDto: {
       /** @description false deactivates the admin and ends sessions. */
       isActive: boolean
-    }
-    CreateInvitationItemDto: {
-      /**
-       * Format: uuid
-       * @description The invite is sent to this student guardian email.
-       */
-      studentId: string
-    }
-    CreateInvitationsDto: {
-      /** @description 1-500 items. All-or-nothing: one invalid item rejects the whole request with per-item errors (e.g. items.3.field). */
-      items: components['schemas']['CreateInvitationItemDto'][]
-    }
-    InvitationsResultDto: {
-      items: components['schemas']['InvitationDto'][]
-    }
-    PaginatedInvitationsDto: {
-      items: components['schemas']['InvitationDto'][]
-      page: number
-      limit: number
-      total: number
     }
   }
   responses: never
@@ -3344,6 +3767,15 @@ export interface operations {
           'application/json': components['schemas']['ErrorDto']
         }
       }
+      /** @description The reset email could not be sent */
+      502: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
     }
   }
   auth_resetPassword: {
@@ -3408,6 +3840,15 @@ export interface operations {
       }
       /** @description Malformed body */
       400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Email already belongs to another account, or the student already has an account (linked meanwhile) */
+      409: {
         headers: {
           [name: string]: unknown
         }
@@ -3483,6 +3924,15 @@ export interface operations {
           [name: string]: unknown
         }
         content?: never
+      }
+      /** @description The new password equals the account email */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
       }
       /** @description Missing token or wrong current password */
       401: {
@@ -3895,6 +4345,15 @@ export interface operations {
           'application/json': components['schemas']['ErrorDto']
         }
       }
+      /** @description Academic year not found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
       /** @description Standard already exists in that year */
       409: {
         headers: {
@@ -3945,7 +4404,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorDto']
         }
       }
-      /** @description An academic year was not found */
+      /** @description Academic year not found */
       404: {
         headers: {
           [name: string]: unknown
@@ -4629,7 +5088,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorDto']
         }
       }
-      /** @description Name already exists */
+      /** @description Name already exists, or isDefault=false sent for the current default scale */
       409: {
         headers: {
           [name: string]: unknown
@@ -4647,9 +5106,13 @@ export interface operations {
         limit?: number
         /** @description Search by name or admission number. */
         q?: string
+        /** @description Students enrolled that year. Also the year for each row's class, roll no, boarding and fee status (default: current year). */
         academicYearId?: string
         classId?: string
         status?: 'ACTIVE' | 'INACTIVE' | 'ALUMNI'
+        /** @description Fee status in the filtered (else current) year. */
+        feeStatus?: 'PAID' | 'PARTIAL' | 'PENDING' | 'NO_FEES'
+        portalStatus?: 'NOT_INVITED' | 'INVITED' | 'INVITE_EXPIRED' | 'ACTIVE' | 'DEACTIVATED'
         sort?: 'name' | 'admissionNo' | 'createdAt'
         order?: 'asc' | 'desc'
       }
@@ -4744,7 +5207,16 @@ export interface operations {
           'application/json': components['schemas']['ErrorDto']
         }
       }
-      /** @description Guardian email already in use */
+      /** @description Class or academic year not found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Guardian email already in use; or, with `sendInvite`, it already belongs to another account ("Email already belongs to another account") */
       409: {
         headers: {
           [name: string]: unknown
@@ -4926,7 +5398,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorDto']
         }
       }
-      /** @description Guardian email already in use */
+      /** @description Guardian email already in use (also by another account when the student has a login); or, when a pending invite is re-sent to the new email, it already belongs to another account ("Email already belongs to another account") */
       409: {
         headers: {
           [name: string]: unknown
@@ -4989,6 +5461,72 @@ export interface operations {
       }
       /** @description Student not found */
       404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+    }
+  }
+  students_restore: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['StudentDto']
+        }
+      }
+      /** @description Invalid id */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Missing or invalid access token */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Admin role required */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Student not found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Student is not deleted */
+      409: {
         headers: {
           [name: string]: unknown
         }
@@ -5253,7 +5791,7 @@ export interface operations {
           'application/json': components['schemas']['StudentDocumentDto']
         }
       }
-      /** @description Validation failed */
+      /** @description Validation failed, the file key is invalid or not uploaded, or `mimeType` does not match the uploaded file */
       400: {
         headers: {
           [name: string]: unknown
@@ -5332,6 +5870,15 @@ export interface operations {
       }
       /** @description Admin role required */
       403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Student, class or academic year not found */
+      404: {
         headers: {
           [name: string]: unknown
         }
@@ -5687,6 +6234,189 @@ export interface operations {
       }
     }
   }
+  invitations_list: {
+    parameters: {
+      query?: {
+        page?: number
+        limit?: number
+        status?: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED'
+        role?: 'ADMIN' | 'STUDENT'
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PaginatedInvitationsDto']
+        }
+      }
+      /** @description Invalid query */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Missing or invalid access token */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Admin role required */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+    }
+  }
+  invitations_create: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateInvitationsDto']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['InvitationsResultDto']
+        }
+      }
+      /** @description Validation failed */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Missing or invalid access token */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Admin role required */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description A student does not exist */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description A student already has an account, is inactive, or an id is repeated; or a guardian email already belongs to another account ("Email already belongs to another account") */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+    }
+  }
+  invitations_revoke: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Invalid id */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Missing or invalid access token */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Admin role required */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Invitation not found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Invitation already accepted or revoked */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+    }
+  }
   uploads_presign: {
     parameters: {
       query?: never
@@ -5708,7 +6438,7 @@ export interface operations {
           'application/json': components['schemas']['PresignedUploadDto']
         }
       }
-      /** @description Invalid body, size or content type */
+      /** @description Invalid body or content type */
       400: {
         headers: {
           [name: string]: unknown
@@ -5728,6 +6458,15 @@ export interface operations {
       }
       /** @description Purpose not allowed for this role, or account is read-only (ALUMNI) */
       403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Student not found */
+      404: {
         headers: {
           [name: string]: unknown
         }
@@ -6204,6 +6943,63 @@ export interface operations {
       }
     }
   }
+  fees_receipt: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AdminReceiptDto']
+        }
+      }
+      /** @description Invalid id */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Missing or invalid access token */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Admin role required */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Payment not found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+    }
+  }
   fees_voidPayment: {
     parameters: {
       query?: never
@@ -6562,7 +7358,7 @@ export interface operations {
       }
     }
   }
-  paymentSettings_get: {
+  paymentAccounts_list: {
     parameters: {
       query?: never
       header?: never
@@ -6576,7 +7372,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['PaymentSettingsDto']
+          'application/json': components['schemas']['PaymentAccountDto'][]
         }
       }
       /** @description Missing or invalid access token */
@@ -6599,7 +7395,7 @@ export interface operations {
       }
     }
   }
-  paymentSettings_update: {
+  paymentAccounts_create: {
     parameters: {
       query?: never
       header?: never
@@ -6608,16 +7404,16 @@ export interface operations {
     }
     requestBody: {
       content: {
-        'application/json': components['schemas']['UpdatePaymentSettingsDto']
+        'application/json': components['schemas']['CreatePaymentAccountDto']
       }
     }
     responses: {
-      200: {
+      201: {
         headers: {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['PaymentSettingsDto']
+          'application/json': components['schemas']['PaymentAccountDto']
         }
       }
       /** @description Validation failed */
@@ -6640,6 +7436,141 @@ export interface operations {
       }
       /** @description Admin role required */
       403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description A fee type already belongs to another account */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+    }
+  }
+  paymentAccounts_remove: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Deleted */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Missing or invalid access token */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Admin role required */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Account not found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Account still has fee types */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+    }
+  }
+  paymentAccounts_update: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdatePaymentAccountDto']
+      }
+    }
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PaymentAccountDto']
+        }
+      }
+      /** @description Validation failed */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Missing or invalid access token */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Admin role required */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Account not found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description A fee type already belongs to another account */
+      409: {
         headers: {
           [name: string]: unknown
         }
@@ -6735,7 +7666,64 @@ export interface operations {
       }
     }
   }
-  meFees_settings: {
+  meFees_receipt: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ReceiptDto']
+        }
+      }
+      /** @description Invalid id */
+      400: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Missing or invalid access token */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Student role required */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Payment not found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+    }
+  }
+  meFees_accounts: {
     parameters: {
       query?: never
       header?: never
@@ -6749,7 +7737,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['PaymentSettingsDto']
+          'application/json': components['schemas']['MyPaymentAccountDto'][]
         }
       }
       /** @description Missing or invalid access token */
@@ -6822,7 +7810,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorDto']
         }
       }
-      /** @description Fee not found */
+      /** @description Fee or payment account not found */
       404: {
         headers: {
           [name: string]: unknown
@@ -7357,7 +8345,7 @@ export interface operations {
           'application/json': components['schemas']['ErrorDto']
         }
       }
-      /** @description Marks are incomplete */
+      /** @description Marks are incomplete, the exam has no subjects, or it has no eligible students ("No students to publish") */
       409: {
         headers: {
           [name: string]: unknown
@@ -7560,7 +8548,7 @@ export interface operations {
         action?: string
         /** @description ISO 8601 date-time (inclusive). */
         from?: string
-        /** @description ISO 8601 date-time (inclusive). Must not be before from. */
+        /** @description ISO 8601 date-time (inclusive), an instant and not end-of-day: a date-only value means midnight at the start of that day. Must not be before from. */
         to?: string
       }
       header?: never
@@ -7646,6 +8634,15 @@ export interface operations {
       }
       /** @description Admin role required */
       403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description Academic year not found (unknown academicYearId) */
+      404: {
         headers: {
           [name: string]: unknown
         }
@@ -7887,8 +8884,17 @@ export interface operations {
           'application/json': components['schemas']['ErrorDto']
         }
       }
-      /** @description Email already in use or invited */
+      /** @description Email already belongs to an account */
       409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorDto']
+        }
+      }
+      /** @description The invitation email could not be sent; nothing was saved */
+      502: {
         headers: {
           [name: string]: unknown
         }
@@ -8077,171 +9083,6 @@ export interface operations {
       }
       /** @description Cannot deactivate yourself */
       409: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ErrorDto']
-        }
-      }
-    }
-  }
-  invitations_list: {
-    parameters: {
-      query?: {
-        page?: number
-        limit?: number
-        status?: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED'
-        role?: 'ADMIN' | 'STUDENT'
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['PaginatedInvitationsDto']
-        }
-      }
-      /** @description Invalid query */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ErrorDto']
-        }
-      }
-      /** @description Missing or invalid access token */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ErrorDto']
-        }
-      }
-      /** @description Admin role required */
-      403: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ErrorDto']
-        }
-      }
-    }
-  }
-  invitations_create: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateInvitationsDto']
-      }
-    }
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['InvitationsResultDto']
-        }
-      }
-      /** @description Validation failed */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ErrorDto']
-        }
-      }
-      /** @description Missing or invalid access token */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ErrorDto']
-        }
-      }
-      /** @description Admin role required */
-      403: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ErrorDto']
-        }
-      }
-      /** @description A student does not exist */
-      404: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ErrorDto']
-        }
-      }
-    }
-  }
-  invitations_revoke: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      204: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description Invalid id */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ErrorDto']
-        }
-      }
-      /** @description Missing or invalid access token */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ErrorDto']
-        }
-      }
-      /** @description Admin role required */
-      403: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ErrorDto']
-        }
-      }
-      /** @description Invitation not found */
-      404: {
         headers: {
           [name: string]: unknown
         }

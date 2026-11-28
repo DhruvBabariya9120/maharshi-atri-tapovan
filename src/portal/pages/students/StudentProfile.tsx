@@ -560,7 +560,6 @@ function Documents({ studentId }: { studentId: string }) {
           title: title.trim() || DOC_TYPES[type],
           key,
           mimeType: file.type as Schemas['CreateStudentDocumentDto']['mimeType'],
-          sizeBytes: file.size,
         },
       })
     },

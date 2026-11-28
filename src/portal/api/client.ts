@@ -40,11 +40,26 @@ export function onUnauthorized(handler: () => void) {
 }
 
 /**
- * Rotate the refresh cookie. Concurrent callers share one request: the API revokes
- * the whole session family if the same refresh token is used twice.
+ * The API rotates the refresh token on every use and revokes the whole session if an old
+ * one is ever sent again. What this guards against:
+ * - two callers in this tab at once: they share one request (`refreshing`).
+ * - two open tabs refreshing at once: a cross-tab lock makes the second wait, so it sends
+ *   the new cookie.
+ * - the tab closing or navigating mid-refresh: `keepalive` lets the request finish so the
+ *   new cookie still lands.
+ * Not covered: a reload that sends its own refresh before the previous one has answered
+ * (the API is often 1-3 s away). Both carry the same old cookie and the API revokes the
+ * session. That needs a short reuse grace period on the API side.
  */
+const refreshRequest = () =>
+  fetch(`${BASE}/auth/refresh`, { method: 'POST', keepalive: true, credentials: 'same-origin' })
+const acrossTabs = <T>(fn: () => Promise<T>): Promise<T> =>
+  typeof navigator !== 'undefined' && 'locks' in navigator
+    ? navigator.locks.request('tapovan-auth-refresh', fn)
+    : fn()
+
 export function refreshSession(): Promise<AuthResponse | null> {
-  refreshing ??= fetch(`${BASE}/auth/refresh`, { method: 'POST' })
+  refreshing ??= acrossTabs(refreshRequest)
     .then(async (res) => {
       if (!res.ok) return null
       const auth = (await res.json()) as AuthResponse

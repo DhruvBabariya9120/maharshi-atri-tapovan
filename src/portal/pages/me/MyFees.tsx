@@ -26,7 +26,14 @@ export function MyFees() {
     queryKey: ['me', 'payment-submissions'],
     queryFn: () => api<Schemas['MyPaymentSubmissionDto'][]>('/me/payment-submissions'),
   })
+  const accounts = useQuery({
+    queryKey: ['me', 'payment-accounts'],
+    queryFn: () => api<Schemas['MyPaymentAccountDto'][]>('/me/payment-accounts'),
+  })
   const readOnly = me.data?.student?.status === 'ALUMNI'
+  // A fee type no account collects is paid in cash at the office (unknown while loading).
+  const cashOnly = (t: Schemas['StudentFeeDto']['feeType']) =>
+    !!accounts.data && !accounts.data.some((a) => a.feeTypes.includes(t))
 
   if (fees.isPending) return <div className="dt h-60 animate-pulse" />
   if (fees.isError)
@@ -41,6 +48,12 @@ export function MyFees() {
   )
   const pendingFor = (feeId: string) =>
     requests.data?.find((r) => r.studentFeeId === feeId && r.status === 'PENDING')
+  // What can still be claimed online: the API counts proofs being checked against the balance.
+  const payableOf = (f: Schemas['StudentFeeDto']) =>
+    Number(f.remainingAmount) -
+    (requests.data ?? [])
+      .filter((r) => r.studentFeeId === f.id && r.status === 'PENDING')
+      .reduce((sum, r) => sum + Number(r.amount), 0)
   const recentRequests = [...(requests.data ?? [])]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 6)
@@ -107,14 +120,22 @@ export function MyFees() {
                   {fmtDate(pending.createdAt)} is being checked by the office.
                 </p>
               )}
-              {f.status !== 'PAID' && !readOnly && (
-                <Link
-                  to={`/me/fees/${f.id}/pay`}
-                  className="bg-brand hover:bg-brand-dark inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white"
-                >
-                  Pay {inr(f.remainingAmount)}
-                </Link>
-              )}
+              {f.status !== 'PAID' &&
+                !readOnly &&
+                (cashOnly(f.feeType) ? (
+                  <p className="text-muted rounded-xl bg-slate-50 px-3 py-2 text-[13px]">
+                    Pay this fee in cash at the school office.
+                  </p>
+                ) : (
+                  payableOf(f) > 0 && (
+                    <Link
+                      to={`/me/fees/${f.id}/pay`}
+                      className="bg-brand hover:bg-brand-dark inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white"
+                    >
+                      Pay {inr(payableOf(f))}
+                    </Link>
+                  )
+                ))}
             </section>
           )
         })}
@@ -206,14 +227,25 @@ export function MyFees() {
                 </tr>
               )}
               {payments.data?.map((p) => (
-                <tr key={p.id}>
-                  <td className="text-heading font-mono text-[13px]">{p.receiptNo}</td>
+                <tr key={p.id} className={p.voidedAt ? 'bg-red-50/40' : undefined}>
+                  <td
+                    className={`font-mono text-[13px] ${p.voidedAt ? 'text-muted line-through' : 'text-heading'}`}
+                  >
+                    {p.receiptNo}
+                    {p.voidedAt && (
+                      <span className="ml-2 rounded bg-red-100 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-red-800 no-underline">
+                        VOID
+                      </span>
+                    )}
+                  </td>
                   <td className="whitespace-nowrap">{fmtDate(p.paidOn)}</td>
                   <td>{p.feeTitle}</td>
                   <td>
                     <MethodChip method={p.method} />
                   </td>
-                  <td className="text-heading text-right font-semibold whitespace-nowrap tabular-nums">
+                  <td
+                    className={`text-right font-semibold whitespace-nowrap tabular-nums ${p.voidedAt ? 'text-muted line-through' : 'text-heading'}`}
+                  >
                     {inr(p.amount)}
                   </td>
                   <td>

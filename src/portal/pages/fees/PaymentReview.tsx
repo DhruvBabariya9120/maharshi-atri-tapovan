@@ -150,6 +150,8 @@ export function PaymentReview() {
               <dd className="text-heading font-semibold tabular-nums">{inr(r.amount)}</dd>
               <dt className="text-muted">Method</dt>
               <dd className="text-heading">{METHODS[r.method]}</dd>
+              <dt className="text-muted">Paid into</dt>
+              <dd className="text-heading">{r.paymentAccountName}</dd>
               <dt className="text-muted">UTR / reference</dt>
               <dd className="text-heading font-mono">{r.referenceNo}</dd>
               <dt className="text-muted">Paid on</dt>

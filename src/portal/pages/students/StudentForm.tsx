@@ -188,7 +188,10 @@ function FormBody({ student }: { student?: Student }) {
   const save = useMutation({
     mutationFn: async (v: Form) => {
       if (student)
-        return api<Student>(`/students/${student.id}`, { method: 'PATCH', body: toDto(v) })
+        return {
+          s: await api<Student>(`/students/${student.id}`, { method: 'PATCH', body: toDto(v) }),
+          inviteFailed: false,
+        }
       const item: Schemas['CreateStudentDto'] = {
         ...(toDto(v) as Schemas['CreateStudentDto']),
         sendInvite: v.sendInvite,
@@ -206,11 +209,16 @@ function FormBody({ student }: { student?: Student }) {
         method: 'POST',
         body: { items: [item] },
       })
-      return r.items[0]
+      // The student is saved even when the invite email fails; the API lists those.
+      return { s: r.items[0], inviteFailed: r.inviteFailed.length > 0 }
     },
-    onSuccess: (s) => {
+    onSuccess: ({ s, inviteFailed }) => {
       qc.invalidateQueries({ queryKey: ['students'] })
       toast.success(student ? 'Changes saved' : `Added ${fullName(s)} · ${s.admissionNo}`)
+      if (inviteFailed)
+        toast.warning(
+          'The login invite email couldn’t be sent. Use “Send login invite” on the profile to try again.'
+        )
       navigate(`/admin/students/${s.id}`)
     },
     onError: (err) => {

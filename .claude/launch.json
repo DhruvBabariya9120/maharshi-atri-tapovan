@@ -7,6 +7,13 @@
       "runtimeArgs": ["run", "dev", "--", "--port", "5173", "--strictPort"],
       "env": { "VITE_API_MOCK": "true" },
       "port": 5173
+    },
+    {
+      "name": "dev-api",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5175", "--strictPort"],
+      "env": { "VITE_API_MOCK": "false", "API_URL": "https://tapovan-api.onrender.com" },
+      "port": 5175
     }
   ]
 }

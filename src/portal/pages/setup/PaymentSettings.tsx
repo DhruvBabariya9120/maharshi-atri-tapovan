@@ -1,47 +1,227 @@
 import { useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { ImageUp, Loader2, QrCode } from 'lucide-react'
+import { Banknote, ImageUp, Loader2, Pencil, Plus, QrCode, Trash2 } from 'lucide-react'
 import { FieldWrap, Input, Textarea } from '../../../components/ui/Field'
 import { api, type Schemas } from '../../api/client'
 import { checkFile, uploadFile } from '../../api/lookups'
-import { Btn, PageHeader, errorText } from '../../ui'
+import { Btn, ConfirmDialog, PageHeader, errorText } from '../../ui'
+import { FEE_TYPES, type FeeType } from '../fees/common'
 
-type Settings = Schemas['PaymentSettingsDto']
-type Form = Required<{ [K in keyof Schemas['UpdatePaymentSettingsDto']]: string }>
+// The school can collect into several accounts. Each fee type belongs to at most one
+// account; students paying a fee see the account that collects its type. A fee type on
+// no account is paid in cash at the office.
 
-const toForm = (s?: Settings): Form => ({
-  upiId: s?.upiId ?? '',
-  payeeName: s?.payeeName ?? '',
-  qrKey: s?.qrKey ?? '',
-  bankAccountName: s?.bankAccountName ?? '',
-  bankAccountNo: s?.bankAccountNo ?? '',
-  ifsc: s?.ifsc ?? '',
-  bankBranch: s?.bankBranch ?? '',
-  instructions: s?.instructions ?? '',
+type Account = Schemas['PaymentAccountDto']
+const TEXT_FIELDS = [
+  'name',
+  'upiId',
+  'payeeName',
+  'qrKey',
+  'bankAccountName',
+  'bankAccountNo',
+  'ifsc',
+  'bankBranch',
+  'instructions',
+] as const
+type TextField = (typeof TEXT_FIELDS)[number]
+type Form = Record<TextField, string> & { feeTypes: FeeType[] }
+
+const ALL_TYPES = Object.keys(FEE_TYPES) as FeeType[]
+const toForm = (a?: Account): Form => ({
+  name: a?.name ?? '',
+  upiId: a?.upiId ?? '',
+  payeeName: a?.payeeName ?? '',
+  qrKey: a?.qrKey ?? '',
+  bankAccountName: a?.bankAccountName ?? '',
+  bankAccountNo: a?.bankAccountNo ?? '',
+  ifsc: a?.ifsc ?? '',
+  bankBranch: a?.bankBranch ?? '',
+  instructions: a?.instructions ?? '',
+  feeTypes: a?.feeTypes ?? [],
 })
 
 export function PaymentSettings() {
-  const settings = useQuery({
-    queryKey: ['payment-settings'],
-    queryFn: () => api<Settings>('/payment-settings'),
+  const qc = useQueryClient()
+  const accounts = useQuery({
+    queryKey: ['payment-accounts'],
+    queryFn: () => api<Account[]>('/payment-accounts'),
   })
+  const [editing, setEditing] = useState<Account | 'new' | null>(null)
+  const [deleting, setDeleting] = useState<Account | null>(null)
+  const remove = useMutation({
+    mutationFn: (a: Account) => api<void>(`/payment-accounts/${a.id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      toast.success('Account deleted')
+      setDeleting(null)
+      qc.invalidateQueries({ queryKey: ['payment-accounts'] })
+    },
+    onError: (err) => toast.error(errorText(err)),
+  })
+
+  const list = accounts.data ?? []
+  const ownerOf = (t: FeeType) => list.find((a) => a.feeTypes.includes(t))
+
+  if (editing)
+    return (
+      <div className="flex flex-col gap-5">
+        <PageHeader
+          eyebrow="Setup · Payment accounts"
+          title={editing === 'new' ? 'Add payment account' : `Edit ${editing.name}`}
+        />
+        <AccountForm
+          initial={editing === 'new' ? undefined : editing}
+          others={list.filter((a) => editing === 'new' || a.id !== editing.id)}
+          onDone={() => setEditing(null)}
+        />
+      </div>
+    )
+
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
         eyebrow="Setup"
-        title="Payment details"
-        sub="Students see this QR code and bank account on every fee with money due. Changes show to students straight away."
+        title="Payment accounts"
+        sub="Each account collects some fee types. A student paying a fee sees the QR and bank details of the account that collects it. Changes show to students straight away."
+        actions={
+          <Btn onClick={() => setEditing('new')}>
+            <Plus className="h-4 w-4" aria-hidden /> Add account
+          </Btn>
+        }
       />
-      {settings.isPending ? (
+
+      {accounts.isPending ? (
         <div className="dt h-60 animate-pulse" />
-      ) : settings.isError ? (
+      ) : accounts.isError ? (
         <p className="text-sm text-red-700">
-          {errorText(settings.error, "Couldn't load the payment details.")}
+          {errorText(accounts.error, "Couldn't load the payment accounts.")}
         </p>
       ) : (
-        <SettingsForm initial={settings.data} />
+        <>
+          <section className="dt flex flex-col gap-3 p-5">
+            <h2 className="font-display text-heading text-[15px] font-semibold">
+              Where each fee is paid
+            </h2>
+            <ul className="flex flex-wrap gap-2">
+              {ALL_TYPES.map((t) => {
+                const a = ownerOf(t)
+                return (
+                  <li
+                    key={t}
+                    className={`flex flex-col rounded-xl border px-3 py-1.5 text-xs ${a ? 'border-border bg-white' : 'border-amber-200 bg-amber-50'}`}
+                  >
+                    <b className="text-heading text-[13px]">{FEE_TYPES[t]}</b>
+                    <span className={a ? 'text-muted' : 'text-amber-800'}>
+                      {a ? a.name : 'Cash at the office'}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+
+          {!list.length && (
+            <div className="bg-tint-blue-soft rounded-2xl border border-dashed border-blue-200 px-6 py-14 text-center">
+              <Banknote className="text-brand mx-auto mb-3 h-8 w-8" aria-hidden />
+              <p className="font-display text-heading text-lg font-semibold">No accounts yet</p>
+              <p className="text-muted mt-1 text-sm">
+                Until you add one, students can only pay fees in cash at the office.
+              </p>
+            </div>
+          )}
+
+          <div className="grid gap-4 xl:grid-cols-2">
+            {list.map((a) => (
+              <article key={a.id} className="dt flex flex-col gap-4 p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <h2 className="font-display text-heading text-[17px] font-semibold">
+                      {a.name}
+                    </h2>
+                    <span className="flex flex-wrap gap-1.5">
+                      {a.feeTypes.length ? (
+                        a.feeTypes.map((t) => (
+                          <span
+                            key={t}
+                            className="bg-tint-blue-soft text-brand rounded-md px-2 py-0.5 text-[11px] font-semibold"
+                          >
+                            {FEE_TYPES[t]}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-amber-800">
+                          No fee types: hidden from students
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      aria-label={`Edit ${a.name}`}
+                      onClick={() => setEditing(a)}
+                      className="border-border hover:border-brand hover:text-brand grid h-9 w-9 place-items-center rounded-lg border bg-white"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={
+                        a.feeTypes.length
+                          ? `${a.name} still collects fees and can't be deleted`
+                          : `Delete ${a.name}`
+                      }
+                      title={
+                        a.feeTypes.length
+                          ? 'Remove its fee types (or move them to another account) first'
+                          : undefined
+                      }
+                      disabled={a.feeTypes.length > 0}
+                      onClick={() => setDeleting(a)}
+                      className="border-border grid h-9 w-9 place-items-center rounded-lg border bg-white text-red-700 hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-start gap-4 text-sm">
+                  <div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-lg border border-slate-200 bg-white">
+                    {a.qrUrl ? (
+                      <img
+                        src={a.qrUrl}
+                        alt={`${a.name} UPI QR`}
+                        className="h-full w-full object-contain p-1"
+                      />
+                    ) : (
+                      <QrCode className="h-7 w-7 text-slate-300" aria-label="No QR" />
+                    )}
+                  </div>
+                  <dl className="grid min-w-0 flex-1 grid-cols-[110px_minmax(0,1fr)] gap-x-3 gap-y-1">
+                    <dt className="text-muted">UPI ID</dt>
+                    <dd className="text-heading truncate">{a.upiId ?? '—'}</dd>
+                    <dt className="text-muted">Account</dt>
+                    <dd className="text-heading truncate">
+                      {a.bankAccountNo ? `${a.bankAccountName ?? ''} · ${a.bankAccountNo}` : '—'}
+                    </dd>
+                    <dt className="text-muted">IFSC</dt>
+                    <dd className="text-heading">{a.ifsc ?? '—'}</dd>
+                  </dl>
+                </div>
+              </article>
+            ))}
+          </div>
+        </>
       )}
+
+      <ConfirmDialog
+        open={!!deleting}
+        onClose={() => setDeleting(null)}
+        title={`Delete ${deleting?.name ?? 'account'}?`}
+        body="Students no longer see it. Past payments and receipts keep the account's details."
+        confirmLabel="Delete account"
+        busy={remove.isPending}
+        onConfirm={() => deleting && remove.mutate(deleting)}
+      />
     </div>
   )
 }
@@ -50,13 +230,28 @@ const UPI = /^[\w.-]{2,}@[a-zA-Z]{2,}$/
 const IFSC = /^[A-Z]{4}0[A-Z0-9]{6}$/
 const ACCOUNT = /^\d{9,18}$/
 
-function SettingsForm({ initial }: { initial: Settings }) {
+function AccountForm({
+  initial,
+  others,
+  onDone,
+}: {
+  initial?: Account
+  others: Account[]
+  onDone: () => void
+}) {
   const qc = useQueryClient()
-  const [form, setForm] = useState<Form>(toForm(initial))
-  const [qrPreview, setQrPreview] = useState<string | null>(initial.qrUrl)
+  const saved = toForm(initial)
+  const [form, setForm] = useState<Form>(saved)
+  const [qrPreview, setQrPreview] = useState<string | null>(initial?.qrUrl ?? null)
   const fileInput = useRef<HTMLInputElement>(null)
-  const set = (k: keyof Form) => (e: { target: { value: string } }) =>
+  const set = (k: TextField) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [k]: e.target.value }))
+  const takenBy = (t: FeeType) => others.find((a) => a.feeTypes.includes(t))
+  const toggleType = (t: FeeType) =>
+    setForm((f) => ({
+      ...f,
+      feeTypes: f.feeTypes.includes(t) ? f.feeTypes.filter((x) => x !== t) : [...f.feeTypes, t],
+    }))
 
   const uploadQr = useMutation({
     mutationFn: (file: File) => uploadFile(file, 'PAYMENT_QR'),
@@ -67,35 +262,108 @@ function SettingsForm({ initial }: { initial: Settings }) {
     },
     onError: (err) => toast.error(errorText(err, (err as Error).message)),
   })
+
+  const clean = (k: TextField) => (k === 'ifsc' ? form.ifsc.trim().toUpperCase() : form[k].trim())
   const save = useMutation({
     mutationFn: () => {
-      const body: Schemas['UpdatePaymentSettingsDto'] = {}
-      ;(Object.keys(form) as (keyof Form)[]).forEach((k) => {
-        if (form[k].trim()) body[k] = k === 'ifsc' ? form[k].trim().toUpperCase() : form[k].trim()
+      // Only send what's filled in (create) or changed (update): the API rejects empty strings.
+      const body: Record<string, unknown> = {}
+      TEXT_FIELDS.forEach((k) => {
+        const v = clean(k)
+        if (v && (!initial || v !== saved[k].trim())) body[k] = v
       })
-      return api<Settings>('/payment-settings', { method: 'PUT', body })
+      if (!initial || form.feeTypes.join() !== saved.feeTypes.join()) body.feeTypes = form.feeTypes
+      return initial
+        ? api<Account>(`/payment-accounts/${initial.id}`, { method: 'PATCH', body })
+        : api<Account>('/payment-accounts', { method: 'POST', body })
     },
-    onSuccess: (s) => {
-      qc.setQueryData(['payment-settings'], s)
-      toast.success('Payment details saved')
+    onSuccess: (a) => {
+      qc.invalidateQueries({ queryKey: ['payment-accounts'] })
+      toast.success(initial ? `${a.name} saved` : `Added ${a.name}`)
+      onDone()
     },
     onError: (err) => toast.error(errorText(err)),
   })
 
-  const errors = {
-    upiId: form.upiId && !UPI.test(form.upiId.trim()) ? 'Looks like name@bank' : undefined,
-    ifsc:
-      form.ifsc && !IFSC.test(form.ifsc.trim().toUpperCase())
+  // A saved value can't be removed (the API has no "clear"); it can only be changed.
+  const cleared = (k: TextField) => !!saved[k].trim() && !form[k].trim()
+  const keep = 'Saved details can be changed but not removed'
+  const errors: Partial<Record<TextField | 'feeTypes' | 'pay', string>> = {
+    name: !form.name.trim() ? 'Give the account a name' : undefined,
+    upiId: cleared('upiId')
+      ? keep
+      : form.upiId && !UPI.test(form.upiId.trim())
+        ? 'Looks like name@bank'
+        : undefined,
+    payeeName: cleared('payeeName') ? keep : undefined,
+    bankAccountName: cleared('bankAccountName') ? keep : undefined,
+    bankAccountNo: cleared('bankAccountNo')
+      ? keep
+      : form.bankAccountNo && !ACCOUNT.test(form.bankAccountNo.trim())
+        ? '9 to 18 digits'
+        : undefined,
+    ifsc: cleared('ifsc')
+      ? keep
+      : form.ifsc && !IFSC.test(form.ifsc.trim().toUpperCase())
         ? '11 characters, like SBIN0001234'
         : undefined,
-    bankAccountNo:
-      form.bankAccountNo && !ACCOUNT.test(form.bankAccountNo.trim()) ? '9 to 18 digits' : undefined,
+    bankBranch: cleared('bankBranch') ? keep : undefined,
+    instructions: cleared('instructions') ? keep : undefined,
+    feeTypes: !initial && !form.feeTypes.length ? 'Pick at least one fee type' : undefined,
+    pay:
+      !form.upiId.trim() &&
+      !(form.bankAccountName.trim() && form.bankAccountNo.trim() && form.ifsc.trim())
+        ? 'Add a UPI ID, or the account name, number and IFSC'
+        : undefined,
   }
   const hasError = Object.values(errors).some(Boolean)
 
   return (
     <div className="flex flex-wrap items-start gap-5">
       <div className="flex min-w-0 flex-[2_1_520px] flex-col gap-5">
+        <section className="dt flex flex-col gap-4 p-5 sm:p-6">
+          <FieldWrap label="Account name" htmlFor="pa-name" required error={errors.name}>
+            <Input
+              id="pa-name"
+              placeholder="e.g. Tuition account"
+              value={form.name}
+              onChange={set('name')}
+            />
+          </FieldWrap>
+          <fieldset className="flex flex-col gap-2">
+            <legend className="text-heading mb-1 text-sm font-medium">
+              Fees paid into this account
+            </legend>
+            <div className="flex flex-wrap gap-2">
+              {ALL_TYPES.map((t) => {
+                const other = takenBy(t)
+                const on = form.feeTypes.includes(t)
+                return (
+                  <label
+                    key={t}
+                    title={other ? `Collected by ${other.name}` : undefined}
+                    className={`flex min-h-10 items-center gap-2 rounded-full border px-3.5 text-sm ${other ? 'cursor-not-allowed border-slate-200 text-slate-400' : on ? 'border-brand bg-tint-blue-soft text-brand cursor-pointer' : 'border-border cursor-pointer bg-white'}`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="accent-brand h-4 w-4"
+                      checked={on}
+                      disabled={!!other}
+                      onChange={() => toggleType(t)}
+                    />
+                    {FEE_TYPES[t]}
+                    {other && <span className="text-xs">· {other.name}</span>}
+                  </label>
+                )
+              })}
+            </div>
+            <span className={`text-xs ${errors.feeTypes ? 'text-red-700' : 'text-muted'}`}>
+              {errors.feeTypes ??
+                'A fee type can be on one account only. To move one, untick it on its current account first.'}
+            </span>
+          </fieldset>
+        </section>
+
         <section className="dt flex flex-col gap-4 p-5 sm:p-6">
           <h2 className="font-display text-heading text-[17px] font-semibold">UPI</h2>
           <div className="flex flex-wrap items-start gap-5">
@@ -106,7 +374,7 @@ function SettingsForm({ initial }: { initial: Settings }) {
                 ) : qrPreview ? (
                   <img
                     src={qrPreview}
-                    alt="School UPI QR code"
+                    alt="UPI QR code"
                     className="h-full w-full object-contain p-2"
                   />
                 ) : (
@@ -147,7 +415,11 @@ function SettingsForm({ initial }: { initial: Settings }) {
                   error={errors.upiId}
                 />
               </FieldWrap>
-              <FieldWrap label="Payee name shown in UPI apps" htmlFor="ps-payee">
+              <FieldWrap
+                label="Payee name shown in UPI apps"
+                htmlFor="ps-payee"
+                error={errors.payeeName}
+              >
                 <Input id="ps-payee" value={form.payeeName} onChange={set('payeeName')} />
               </FieldWrap>
             </div>
@@ -162,7 +434,7 @@ function SettingsForm({ initial }: { initial: Settings }) {
             Bank transfer (NEFT / IMPS / RTGS)
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <FieldWrap label="Account name" htmlFor="ps-an">
+            <FieldWrap label="Account name" htmlFor="ps-an" error={errors.bankAccountName}>
               <Input id="ps-an" value={form.bankAccountName} onChange={set('bankAccountName')} />
             </FieldWrap>
             <FieldWrap label="Account number" htmlFor="ps-ac" error={errors.bankAccountNo}>
@@ -183,7 +455,7 @@ function SettingsForm({ initial }: { initial: Settings }) {
                 error={errors.ifsc}
               />
             </FieldWrap>
-            <FieldWrap label="Bank and branch" htmlFor="ps-branch">
+            <FieldWrap label="Bank and branch" htmlFor="ps-branch" error={errors.bankBranch}>
               <Input id="ps-branch" value={form.bankBranch} onChange={set('bankBranch')} />
             </FieldWrap>
           </div>
@@ -200,15 +472,22 @@ function SettingsForm({ initial }: { initial: Settings }) {
             value={form.instructions}
             onChange={set('instructions')}
           />
+          {errors.instructions && (
+            <span className="text-xs text-red-700">{errors.instructions}</span>
+          )}
         </section>
 
-        <div className="flex justify-end">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {errors.pay && <span className="text-sm text-amber-800">{errors.pay}</span>}
+          <Btn variant="outline" onClick={onDone}>
+            Cancel
+          </Btn>
           <Btn
             busy={save.isPending}
             disabled={hasError || uploadQr.isPending}
             onClick={() => save.mutate()}
           >
-            Save payment details
+            {initial ? 'Save account' : 'Add account'}
           </Btn>
         </div>
       </div>
