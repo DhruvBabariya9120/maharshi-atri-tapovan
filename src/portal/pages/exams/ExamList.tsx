@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, FileText, Plus } from 'lucide-react'
 import { Select } from '../../../components/ui/Field'
 import { api, type Schemas } from '../../api/client'
 import { useClasses, useYears } from '../../api/lookups'
-import { PageHeader, TableState, fmtDate } from '../../ui'
+import { NoAcademicYear, PageHeader, TableState, fmtDate } from '../../ui'
 import { EXAM_TYPES, ExamStatus, TYPE_TONE, dateRange, type ExamType } from './common'
 
 const LIMIT = 25
@@ -48,6 +48,18 @@ export function ExamList() {
   const items = exams.data?.items ?? []
   const total = exams.data?.total ?? 0
   const pages = Math.max(1, Math.ceil(total / LIMIT))
+
+  // Exams belong to an academic year; without one the list query never runs (and never finishes).
+  if (!years.isPending && !years.current)
+    return (
+      <div className="flex flex-col gap-5">
+        <PageHeader title="Exams" />
+        <NoAcademicYear error={years.error}>
+          Exams are created for a class in an academic year. Add the year, its classes and subjects,
+          then create exams.
+        </NoAcademicYear>
+      </div>
+    )
 
   return (
     <div className="flex flex-col gap-5">

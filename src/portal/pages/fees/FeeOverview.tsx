@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react'
 import { Select } from '../../../components/ui/Field'
 import { api, type Schemas } from '../../api/client'
 import { useClasses, useYears } from '../../api/lookups'
-import { PageHeader, TableState, fmtDate } from '../../ui'
+import { NoAcademicYear, PageHeader, TableState, fmtDate } from '../../ui'
 import { StudentAvatar, fullName } from '../students/common'
 import {
   FEE_TYPES,
@@ -86,6 +86,17 @@ export function FeeOverview() {
       tone: 'text-red-700',
     },
   ]
+
+  // Fees belong to an academic year; without one the queries never run (and never finish).
+  if (!years.isPending && !years.current)
+    return (
+      <div className="flex flex-col gap-5">
+        <PageHeader title="Fees" />
+        <NoAcademicYear error={years.error}>
+          Fees are billed for an academic year. Add the year and its classes, then assign fees.
+        </NoAcademicYear>
+      </div>
+    )
 
   return (
     <div className="flex flex-col gap-5">
